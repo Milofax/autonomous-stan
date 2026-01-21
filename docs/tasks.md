@@ -189,15 +189,31 @@ Abgeleitet aus [plan.md](plan.md). Format: Task-ID, Beschreibung, Dependencies, 
 **Dateien:**
 - `tests/criteria-eval/evaluators/*.md`
 - `tests/criteria-eval/golden/*.md`
-- `tests/criteria-eval/runner.py`
 
 **Acceptance Criteria:**
-- [ ] Evaluator-Template mit Grading Rubric (1-5)
-- [ ] Golden Examples (gut/schlecht) für jedes Criteria
-- [ ] JSON Output Format für strukturierte Ergebnisse
-- [ ] Integration in `/stan healthcheck --eval-criteria`
+- [x] Evaluator-Template mit Grading Rubric (1-5) - Prototyp fertig
+- [x] JSON Output Format für strukturierte Ergebnisse
+- [ ] Golden Examples für alle Criteria
 
-**Status:** In Progress - Prototyping nötig
+**Evaluatoren (11 total):**
+
+| Criteria | Evaluator | Golden | Status |
+|----------|-----------|--------|--------|
+| goal-quality | ✓ | ✓ | Done |
+| acceptance-criteria-quality | | | TODO |
+| business-value-quality | | | TODO |
+| dependency-coverage | | | TODO |
+| task-clarity | | | TODO |
+| user-stories-quality | | | TODO |
+| text-quality | | | TODO |
+| spelling | | | TODO (auto?) |
+| tests | | | TODO (auto) |
+| typecheck | | | TODO (auto) |
+| lint | | | TODO (auto) |
+
+**Hinweis:** `spelling`, `tests`, `typecheck`, `lint` sind Auto-Checks (Commands). Brauchen evtl. keinen LLM-Evaluator.
+
+**Status:** In Progress - 1/11 fertig
 
 ---
 
