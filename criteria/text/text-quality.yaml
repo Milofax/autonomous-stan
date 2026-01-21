@@ -1,0 +1,23 @@
+name: Text-Qualität
+description: Allgemeine Qualitätskriterien für Text-Dokumente.
+
+checks:
+  - id: clarity
+    question: "Ist der Text klar und verständlich?"
+    required: true
+
+  - id: structure
+    question: "Hat der Text eine logische Struktur?"
+    required: true
+
+  - id: concise
+    question: "Ist der Text prägnant ohne unnötige Füllwörter?"
+    required: true
+
+  - id: audience
+    question: "Ist der Text für die Zielgruppe angemessen?"
+    required: false
+
+  - id: actionable
+    question: "Sind Handlungsaufforderungen klar?"
+    required: false

@@ -1,0 +1,19 @@
+name: Akzeptanzkriterien-Qualität
+description: Sind Akzeptanzkriterien gut definiert?
+
+checks:
+  - id: measurable
+    question: "Sind die Kriterien messbar/prüfbar?"
+    required: true
+
+  - id: complete
+    question: "Decken die Kriterien alle Aspekte des Tasks ab?"
+    required: true
+
+  - id: specific
+    question: "Sind die Kriterien spezifisch (nicht vage)?"
+    required: true
+
+  - id: verifiable
+    question: "Kann jemand anderes verifizieren ob sie erfüllt sind?"
+    required: false

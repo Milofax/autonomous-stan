@@ -1,0 +1,68 @@
+---
+type: plan
+status: draft
+criteria:
+  - task-clarity
+  - dependency-coverage
+  - acceptance-criteria-quality
+---
+
+# Implementation Plan: {{title}}
+
+## Übersicht
+
+Kurze Zusammenfassung des Plans.
+
+**PRD:** [docs/prd.md](prd.md)
+**Geschätzte Tasks:** {{task_count}}
+
+## Tasks
+
+### T-001: {{task_title}}
+
+**Beschreibung:** Was wird gemacht?
+
+**Dependencies:** Keine | T-XXX
+
+**Dateien:**
+- `path/to/file1`
+- `path/to/file2`
+
+**Akzeptanzkriterien:**
+- [ ] Kriterium 1
+- [ ] Kriterium 2
+
+---
+
+### T-002: {{task_title}}
+
+**Beschreibung:** Was wird gemacht?
+
+**Dependencies:** T-001
+
+**Dateien:**
+- `path/to/file`
+
+**Akzeptanzkriterien:**
+- [ ] Kriterium 1
+
+---
+
+## Dependency Graph
+
+```
+T-001 ──> T-002 ──> T-003
+              │
+              └──> T-004
+```
+
+## Parallelisierung
+
+| Parallel möglich | Sequentiell |
+|-----------------|-------------|
+| T-001, T-002 | T-003 nach T-001 |
+
+## Risiken
+
+- Risiko 1: Mitigation
+- Risiko 2: Mitigation

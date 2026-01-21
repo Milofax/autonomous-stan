@@ -1,0 +1,39 @@
+---
+type: manifest
+criteria: []
+---
+
+# {{project_name}}
+
+## Status
+
+| Feld | Wert |
+|------|------|
+| **Phase** | DEFINE |
+| **Current Task** | - |
+| **Last Updated** | {{date}} |
+
+## Projekt-Info
+
+**Beschreibung:** {{description}}
+
+**Ziel:** {{goal}}
+
+## Phasen-Verlauf
+
+| Phase | Status | Datum |
+|-------|--------|-------|
+| DEFINE | in_progress | {{date}} |
+| PLAN | pending | - |
+| CREATE | pending | - |
+
+## Dokumente
+
+| Dokument | Status | Pfad |
+|----------|--------|------|
+| PRD | pending | docs/prd.md |
+| Plan | pending | docs/plan.md |
+
+## Notizen
+
+<!-- Platz für Kontext, Entscheidungen, offene Fragen -->

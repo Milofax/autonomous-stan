@@ -1,0 +1,17 @@
+name: Type Check
+description: Code muss type-safe sein (wenn Typen verwendet werden).
+
+checks:
+  - id: typecheck-pass
+    question: "Läuft der Type-Checker ohne Fehler?"
+    required: true
+    auto: true
+    commands:
+      - pattern: "tsconfig.json"
+        command: "npx tsc --noEmit"
+      - pattern: "pyproject.toml"
+        command: "mypy ."
+
+  - id: no-any
+    question: "Werden explizite Typen statt 'any' verwendet?"
+    required: false

@@ -1,0 +1,15 @@
+name: Business Value Qualität
+description: Ist der Geschäftswert klar definiert?
+
+checks:
+  - id: value-clear
+    question: "Ist der Mehrwert für User/Business klar formuliert?"
+    required: true
+
+  - id: problem-defined
+    question: "Ist das Problem das gelöst wird klar beschrieben?"
+    required: true
+
+  - id: success-metrics
+    question: "Gibt es messbare Erfolgskriterien?"
+    required: false

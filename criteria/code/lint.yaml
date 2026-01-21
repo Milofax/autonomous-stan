@@ -1,0 +1,23 @@
+name: Lint
+description: Code muss den Projekt-Lint-Regeln entsprechen.
+
+checks:
+  - id: lint-pass
+    question: "Läuft der Linter ohne Fehler?"
+    required: true
+    auto: true
+    commands:
+      - pattern: ".eslintrc|eslint.config"
+        command: "npx eslint ."
+      - pattern: "ruff.toml|pyproject.toml"
+        command: "ruff check ."
+
+  - id: format-consistent
+    question: "Ist der Code konsistent formatiert?"
+    required: false
+    auto: true
+    commands:
+      - pattern: ".prettierrc"
+        command: "npx prettier --check ."
+      - pattern: "ruff.toml|pyproject.toml"
+        command: "ruff format --check ."

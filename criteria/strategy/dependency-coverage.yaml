@@ -1,0 +1,19 @@
+name: Dependency Coverage
+description: Sind Abhängigkeiten zwischen Tasks vollständig erfasst?
+
+checks:
+  - id: deps-explicit
+    question: "Sind alle Dependencies explizit aufgeführt?"
+    required: true
+
+  - id: no-cycles
+    question: "Gibt es keine zirkulären Abhängigkeiten?"
+    required: true
+
+  - id: parallel-identified
+    question: "Sind parallelisierbare Tasks identifiziert?"
+    required: false
+
+  - id: file-conflicts
+    question: "Sind potenzielle Datei-Konflikte berücksichtigt?"
+    required: true

@@ -1,0 +1,15 @@
+name: Rechtschreibung
+description: Text muss frei von Rechtschreibfehlern sein.
+
+checks:
+  - id: no-typos
+    question: "Ist der Text frei von Tippfehlern?"
+    required: true
+
+  - id: consistent-terms
+    question: "Werden Fachbegriffe konsistent verwendet?"
+    required: false
+
+  - id: grammar
+    question: "Ist die Grammatik korrekt?"
+    required: true

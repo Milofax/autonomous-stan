@@ -1,0 +1,60 @@
+---
+type: prd
+status: draft
+criteria:
+  - goal-quality
+  - business-value-quality
+  - user-stories-quality
+  - text-quality
+---
+
+# PRD: {{title}}
+
+## Zusammenfassung
+
+Eine kurze Beschreibung des Features oder Projekts in 2-3 Sätzen.
+
+## Ziel
+
+Was soll erreicht werden? Woran erkennt man Erfolg?
+
+## Kontext
+
+Warum jetzt? Was ist der Auslöser? Welches Problem wird gelöst?
+
+## User Stories
+
+### Story 1: {{story_title}}
+
+**Als** [Rolle]
+**möchte ich** [Aktion]
+**damit** [Nutzen]
+
+**Akzeptanzkriterien:**
+- [ ] Kriterium 1
+- [ ] Kriterium 2
+
+## Scope
+
+### In Scope
+- Feature 1
+- Feature 2
+
+### Out of Scope
+- Nicht jetzt: Feature X
+- Später: Feature Y
+
+## Technische Überlegungen
+
+Architektur-Entscheidungen, Constraints, Dependencies.
+
+## Risiken
+
+| Risiko | Wahrscheinlichkeit | Impact | Mitigation |
+|--------|-------------------|--------|------------|
+| Risiko 1 | mittel | hoch | Mitigation |
+
+## Offene Fragen
+
+- [ ] Frage 1?
+- [ ] Frage 2?
