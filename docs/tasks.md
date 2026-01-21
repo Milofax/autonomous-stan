@@ -223,9 +223,34 @@ Abgeleitet aus [plan.md](plan.md). Format: Task-ID, Beschreibung, Dependencies, 
 
 ---
 
-## Phase 6: Polish (Future)
+## Phase 6: Document Lifecycle (Future)
 
-### T-013: Weitere Criteria Packs
+### T-013: Dokument-Versionierung
+
+**Beschreibung:** System für Versionierung und Lifecycle von Dokumenten (PRD, Plan, etc.).
+
+**Dependencies:** T-007
+
+**Fragen zu klären:**
+- Wie erkennen wir dass ein Dokument "abgeschlossen" ist?
+- Wann brauchen wir einen neuen Plan für ein neues Feature?
+- Was können wir von PRP und BMAD übernehmen?
+
+**Recherche nötig:**
+- [ ] PRP Dokument-Lifecycle analysieren
+- [ ] BMAD Versionierung analysieren
+- [ ] Best Practices identifizieren
+
+**Acceptance Criteria:**
+- [ ] Dokument-Status-Modell (draft → review → approved → archived)
+- [ ] Automatische Erkennung von "Dokument veraltet"
+- [ ] Neues Feature = Neuer Plan Workflow
+
+**Status:** Needs Analysis
+
+---
+
+### T-014: Weitere Criteria Packs
 
 **Beschreibung:** Responsive, A11y, Brand-Consistency Criteria.
 
@@ -235,7 +260,9 @@ Abgeleitet aus [plan.md](plan.md). Format: Task-ID, Beschreibung, Dependencies, 
 
 ---
 
-### T-014: E2E Test
+## Phase 7: Polish (Future)
+
+### T-015: E2E Test
 
 **Beschreibung:** Ein echtes Mini-Feature komplett durch alle Phasen führen.
 
@@ -272,4 +299,6 @@ T-002 ────────────────────────�
 | 3: Skill | ✓ | T-007, T-008 |
 | 4: Testing | ► | T-009 ✓, T-010 in progress |
 | 5: Tiered Storage | Future | T-011, T-012 |
-| 6: Polish | Future | T-013, T-014 |
+| 6: Document Lifecycle | Needs Analysis | T-013 |
+| 6: Criteria Packs | Future | T-014 |
+| 7: Polish | Future | T-015 |
