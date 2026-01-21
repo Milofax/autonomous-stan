@@ -134,12 +134,18 @@ def on_post_tool_use(tool, result):
 
 ### 3. stan-gate (PreToolUse)
 
-**Zweck:** Phase-Enforcement + Quality Gates + Learnings-Enforcement (BLOCKIERT)
+**Zweck:** Phase-Enforcement + Quality Gates + Learnings-Enforcement + **Worktree-Enforcement** (BLOCKIERT)
 
 ```python
 def on_pre_tool_use(tool, params):
     manifest = read_manifest("stan.md")
     session = get_session_state()
+
+    # 0. WORKTREE ENFORCEMENT (nur bei Git-Projekten)
+    if is_git_repo() and is_commit_tool(tool):
+        if is_feature_work() and is_main_worktree():
+            return deny("[STAN] Feature-Arbeit auf main! Erst Worktree erstellen:\n"
+                       "git branch feature-name && git worktree add ../project-feature feature-name")
 
     # 1. LEARNINGS ENFORCEMENT (vor Commit)
     if is_commit_tool(tool):
@@ -162,6 +168,21 @@ def on_pre_tool_use(tool, params):
         return deny("3 gleiche Fehler. Perspektivwechsel erforderlich.")
 
     return allow()
+
+def is_main_worktree():
+    """Prüft ob wir im Haupt-Worktree sind (nicht in einem Feature-Worktree)."""
+    # git worktree list zeigt alle Worktrees
+    # Haupt-Repo hat keine "(bare)" oder Feature-Branch Markierung
+    result = run("git rev-parse --git-dir")
+    return ".git" in result  # Haupt-Repo hat .git Verzeichnis, Worktrees haben .git Datei
+
+def is_feature_work():
+    """Heuristik: Ist das eine Feature-Arbeit oder triviale Änderung?"""
+    # Trivial: < 3 Dateien geändert, keine neuen Dateien, kein src/
+    staged = run("git diff --cached --name-only")
+    if len(staged.split()) < 3 and "src/" not in staged:
+        return False
+    return True
 ```
 
 **Enforcement Chain:**
@@ -607,6 +628,98 @@ checks:
 
 ---
 
+## Interaktive Criteria-Tests (LLM-as-Judge)
+
+**Prinzip:** Claude testet sich selbst. Criteria werden zu Evaluation-Prompts.
+
+### Struktur
+
+```
+tests/criteria-eval/
+├── evaluators/
+│   ├── goal_quality_eval.md      # Evaluation-Prompt für goal-quality.yaml
+│   ├── text_quality_eval.md      # Evaluation-Prompt für text-quality.yaml
+│   └── ...
+├── golden/                        # Referenz-Beispiele (few shot)
+│   ├── good_goal.md              # Beispiel für gutes Ziel
+│   ├── bad_goal.md               # Beispiel für schlechtes Ziel
+│   └── ...
+└── runner.py                      # Test-Runner Script
+```
+
+### LLM-as-Judge Patterns (aus Recherche)
+
+| Pattern | Beschreibung |
+|---------|--------------|
+| **Few shot prompting** | Beispiele geben was gut/schlecht ist |
+| **Step decomposition** | Große Entscheidungen in kleine Schritte |
+| **Criteria decomposition** | Eine Evaluation = ein Kriterium |
+| **Grading rubric** | Klare 1-5 Skala mit Beschreibung pro Level |
+| **Structured outputs** | JSON statt Freitext |
+| **Provide explanations** | LLM erklärt WARUM |
+| **Score smoothing** | Trends über Zeit, nicht einzelne Scores |
+
+### Evaluator Template
+
+```markdown
+# Evaluation: {criteria_name}
+
+## Kontext
+Du evaluierst ein Artefakt gegen das Criteria "{criteria_name}".
+
+## Grading Rubric
+- 5 = Perfekt erfüllt
+- 4 = Größtenteils erfüllt, kleine Mängel
+- 3 = Teilweise erfüllt, deutliche Lücken
+- 2 = Kaum erfüllt, große Probleme
+- 1 = Nicht erfüllt
+
+## Beispiele
+### Gut (Score 5):
+{golden/good_example.md}
+
+### Schlecht (Score 1):
+{golden/bad_example.md}
+
+## Zu evaluieren
+{artefakt}
+
+## Output Format (JSON)
+{
+  "criteria": "{criteria_name}",
+  "checks": [
+    {"id": "check_id", "question": "...", "score": 1-5, "explanation": "..."}
+  ],
+  "overall_score": 1-5,
+  "summary": "..."
+}
+```
+
+### Test-Ablauf
+
+1. Claude liest Criteria YAML
+2. Claude generiert/erhält ein Artefakt (z.B. PRD-Ziel)
+3. Claude evaluiert das Artefakt gegen jeden Check
+4. Output: JSON mit Score (1-5) + Erklärung pro Check
+5. Checks mit `required: true` müssen Score ≥4 haben
+
+### Integration mit /stan healthcheck
+
+```
+/stan healthcheck --eval-criteria
+
+[STAN] Evaluiere Criteria gegen Golden Examples...
+
+goal-quality:
+  ✓ concrete: 5/5 - Ziel ist spezifisch und eindeutig
+  ✓ measurable: 4/5 - Messbar, aber Zeitrahmen fehlt
+  ✗ one-sentence: 2/5 - Ziel ist zu lang (3 Sätze)
+
+Overall: 3.7/5 (WARN: Check 'one-sentence' unter Threshold)
+```
+
+---
+
 ## /stan build-template (Template Maker)
 
 **Workflow:**
@@ -777,29 +890,37 @@ autonomous-stan/
 
 ## Implementierungs-Reihenfolge
 
-### Phase 1: Foundation
-1. Templates erstellen (stan.md, prd.md, plan.md)
-2. Criteria Pack Struktur + erste Packs (code_quality)
-3. Lokales Learnings-System (`~/.stan/learnings/`)
+### Phase 1: Foundation ✓
+1. ✓ Templates erstellen (stan.md, prd.md, plan.md)
+2. ✓ Criteria Pack Struktur + erste Packs (code_quality)
+3. ✓ Lokales Learnings-System (`~/.stan/learnings/`)
 
-### Phase 2: Core Hooks
-4. stan-context: Manifest lesen, lokale Learnings laden, Kontext injizieren
-5. stan-track: Test-Ergebnisse tracken
-6. stan-gate: Phase-Enforcement, Quality Gates, Learnings lokal speichern
+### Phase 2: Core Hooks ✓
+4. ✓ stan-context: Manifest lesen, lokale Learnings laden, Kontext injizieren
+5. ✓ stan-track: Test-Ergebnisse tracken
+6. ✓ stan-gate: Phase-Enforcement, Quality Gates, Learnings lokal speichern
 
-### Phase 3: Skill
-7. /stan Skill: Init, Status, Phase-Navigation
-8. Learnings-Review Command (für Projekt-Ende)
+### Phase 3: Skill ✓
+7. ✓ /stan Skill: Init, Status, Phase-Navigation
+8. ✓ Learnings-Review Command (für Projekt-Ende)
 
-### Phase 4: Tiered Storage
-9. Recent → Hot Promotion (bei Mehrfachnutzung)
-10. Recent → Archive Rotation (bei Overflow)
-11. Heat Map / Usage Tracking
+### Phase 4: Testing & Enforcement
+9. **Worktree-Enforcement in stan-gate** - Git-Projekte: Feature-Arbeit nur in Worktree
+10. **Unit Tests für Hooks** - pytest mit stdin/stdout Mocking
+11. **Interaktive Criteria-Tests** - LLM-as-Judge Pattern:
+    - Evaluator Templates erstellen
+    - Golden Examples (gut/schlecht) für jedes Criteria
+    - Integration in /stan healthcheck --eval-criteria
 
-### Phase 5: Polish
-12. Weitere Criteria Packs
-13. README Dokumentation
-14. E2E Test mit echtem Feature
+### Phase 5: Tiered Storage
+12. Recent → Hot Promotion (bei Mehrfachnutzung)
+13. Recent → Archive Rotation (bei Overflow)
+14. Heat Map / Usage Tracking
+
+### Phase 6: Polish
+15. Weitere Criteria Packs
+16. README Dokumentation
+17. E2E Test mit echtem Feature
 
 **Hinweis:** Graphiti-Integration existiert bereits via taming-stan Hooks. STAN nutzt das für Query, schreibt aber nur lokal während der Arbeit.
 
