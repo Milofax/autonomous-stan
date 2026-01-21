@@ -5,4 +5,4 @@ Leichtgewichtiges Framework für autonome, qualitativ hochwertige Implementierun
 ## Verpflichtend
 
 1. **Plan lesen:** [docs/plan.md](docs/plan.md)
-2. **Tasks planen und aktualisieren:** TodoWrite Tool nutzen, Status aktuell halten
+2. **Tasks nutzen und Status aktuell halten:** [docs/tasks.md](docs/tasks.md)
