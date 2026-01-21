@@ -1,0 +1,12 @@
+[submodule "vendor/BMAD-METHOD"]
+	path = vendor/BMAD-METHOD
+	url = https://github.com/bmad-code-org/BMAD-METHOD.git
+[submodule "vendor/ralph"]
+	path = vendor/ralph
+	url = https://github.com/snarktank/ralph.git
+[submodule "vendor/PRPs-agentic-eng"]
+	path = vendor/PRPs-agentic-eng
+	url = https://github.com/Wirasm/PRPs-agentic-eng.git
+[submodule "vendor/claude-agent-sdk"]
+	path = vendor/claude-agent-sdk
+	url = https://github.com/anthropics/claude-agent-sdk-python.git

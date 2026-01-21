@@ -1,0 +1,11 @@
+{
+  "installed_services": [
+    "agent-browser",
+    "firecrawl",
+    "context7"
+  ],
+  "hook_commands": [
+    "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
+  ],
+  "installed_at": "2026-01-21T17:00:58.482Z"
+}
