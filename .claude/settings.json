@@ -1,47 +1,53 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/session-start/reset-session-flags.py"
+          }
+        ],
+        "once": true
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/user-prompt-submit/stan_context.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/post-tool-use/stan_track.py"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/pre-tool-use/stan_gate.py"
+          }
+        ]
+      },
       {
         "matcher": "Read|Edit|Write|Glob|Grep",
         "hooks": [
           {
             "type": "command",
             "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/file-context-tracker.py"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__graphiti.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/graphiti-guard.py"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__mcp-funnel__bridge_tool_request",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/graphiti-guard.py"
-          },
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/graphiti-first-guard.py"
-          },
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
-          }
-        ]
-      },
-      {
-        "matcher": "WebSearch|WebFetch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/graphiti-first-guard.py"
           }
         ]
       },
@@ -57,62 +63,13 @@
             "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/git-workflow-guard.py"
           }
         ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/session-start/reset-session-flags.py"
-          }
-        ],
-        "once": true
       },
       {
+        "matcher": "mcp__mcp-funnel__bridge_tool_request",
         "hooks": [
           {
             "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/session-start/graphiti-context-loader.py"
-          }
-        ],
-        "once": true
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/user-prompt-submit/session-reminder.py"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/user-prompt-submit/graphiti-knowledge-reminder.py"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/post-tool-use/graphiti-retry-guard.py"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/post-tool-use/graphiti-retry-guard.py"
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
           }
         ]
       }
