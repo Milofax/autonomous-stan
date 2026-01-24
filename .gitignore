@@ -35,13 +35,22 @@ dist/
 build/
 *.egg-info/
 
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Temp
 *.tmp
 *.temp
 *.log
 
-# STAN Framework - Session state and local config
+# STAN Framework - Session state (regenerierbar)
 .stan/
+
+# Claude Code - Lokale Settings (offiziell dokumentiert)
+.claude/*.local.md
+.claude/*.local.json
 
 # Secrets - NIEMALS committen!
 .env
