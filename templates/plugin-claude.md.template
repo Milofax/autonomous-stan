@@ -1,0 +1,103 @@
+#PITH:1.2
+#RULE:autonomous-stan|stand:2026-01
+
+# autonomous-stan
+
+Autonomes Workflow-Framework mit modularen Denkwerkzeugen.
+
+## kern
+!prinzip:Hooks enforce Rules|User muss sich nichts merken
+!modular:Templates+Criteria+Techniques|zusammen ODER einzeln nutzbar
+!autonom:CREATE Phase läuft autonom bis Gate/Manual/Fehler
+
+## phasen
+DEFINE→PLAN→CREATE
+  |define:PRD erstellen|interaktiv|status:approved→weiter
+  |plan:Tasks ableiten|interaktiv|min 1 Task ready→weiter
+  |create:Autonom ausführen|bis Gate oder Fehler
+  |reconciliation:CREATE→DEFINE bei fundamentalen Änderungen
+
+## enforcement
+!!phase_wechsel:Nur wenn Bedingungen erfüllt
+  |define→plan:PRD status:approved
+  |plan→create:Min 1 Task status:ready
+  |verstoss:Blockiert durch stan-gate Hook
+
+!!learnings:Bei Test ROT→GRÜN
+  |erkennung:stan-track erkennt automatisch
+  |pflicht:Vor Commit speichern
+  |verstoss:Commit blockiert
+
+!!3_strikes:Nach 3 gleichen Fehlern
+  |aktion:STOPP→Perspektivwechsel→Techniques nutzen
+  |trigger:/stan think oder Purpose wählen
+
+## parallelisierung
+!worktrees:Git Worktrees für isolierte Branches
+!subagents:Parallele Task-Bearbeitung
+!dependencies:Nur Tasks ohne Datei-Überschneidung parallel
+!orchestration:Hauptagent entscheidet
+
+## skills
+/stan init:Projekt starten|stan.md erstellen
+/stan define:DEFINE Phase|PRD,Style Guide,etc.
+/stan plan:PLAN Phase|Tasks ableiten
+/stan create:CREATE Phase|autonom ausführen
+/stan statusupdate:Status anzeigen+ändern
+/stan healthcheck:Konsistenz prüfen
+/stan think:Denktechniken anwenden|STANDALONE
+/stan build-template:Template bauen|STANDALONE
+/stan build-criteria:Criteria bauen|STANDALONE
+/stan ready:Tasks ohne Blocker
+/stan complete:Land the Plane|Abschluss
+
+## meta_tricks
+!!techniques_nutzen:Bei Problemen→/stan think
+  |trigger:"stecke fest"|"weiß nicht weiter"|3 gleiche Fehler
+  |standalone:Funktioniert auch ohne Projekt
+
+!!purpose_einstieg:Bei Orientierungslosigkeit
+  |frage:"Was will ich erreichen?"
+  |root_cause:"Warum passiert das?"
+  |ideation:"Welche Möglichkeiten?"
+  |perspective:"Wie sehen andere das?"
+  |decision:"Welche Option wähle ich?"
+
+!!criteria_check:Vor Abschluss gedanklich prüfen
+  |frage:"Wenn ich Criteria anlegen würde - würde das bestehen?"
+  |anwendung:PRDs,Code,Texte,Entscheidungen,ALLES
+
+## state
+session:/tmp/claude-session-{hash}.json|flüchtig
+manifest:stan.md+docs/*.md|Git-tracked
+learnings:~/.stan/learnings/|recent+hot+archive
+tasks:.stan/tasks.jsonl|Source of Truth
+
+## dateien
+stan.md:Projekt-Manifest|Phase,Task,Criteria
+.stan/tasks.jsonl:Tasks als JSONL|Hash-IDs
+docs/tasks.md:Generated|READ ONLY
+criteria/*.yaml:Qualitätsprüfungen
+templates/*.md:Dokument-Vorlagen
+techniques/*.yaml:Denktechniken
+techniques/purposes/*.yaml:9 Einstiegspunkte
+
+## criteria_typen
+self_check:Claude prüft selbst|text-quality,goal-quality
+auto:Automatischer Command|npm test,typecheck
+manual:User prüft|responsive,a11y
+
+## task_typen
+auto:Claude autonom|nach Acceptance Criteria weiter
+manual:User selbst|User markiert done
+review:Claude macht,User prüft|User bestätigt
+gate:Checkpoint|User explizit approved
+
+## learnings_system
+lokal:~/.stan/learnings/|schnell,während Arbeit
+  |recent.json:Rolling ~50,FIFO
+  |hot.json:Oft genutzt,promoted
+  |archive.json:Permanent,komprimiert
+graphiti:Optional|kuratiert,am Projekt-Ende
+  |main:Allgemeingültig,permanent
+  |Owner-RepoName:Projekt-spezifisch,löschbar

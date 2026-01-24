@@ -1,24 +1,31 @@
-# STAN Framework
+# autonomous-stan (Development)
 
-Leichtgewichtiges Framework für autonome, qualitativ hochwertige Implementierung.
+Autonomes Workflow-Framework mit modularen Denkwerkzeugen für Claude Code.
 
 ## Verpflichtend
 
 1. **Plan lesen:** [docs/plan.md](docs/plan.md)
 2. **Tasks nutzen und Status aktuell halten:** [docs/tasks.md](docs/tasks.md)
+3. **Parallelisierung wo möglich:** Tasks ohne Datei-Überschneidung parallel ausführen
 
 ## KRITISCH: Keine STAN Hooks in diesem Projekt!
 
 **NIEMALS** STAN Hooks in `autonomous-stan` aktivieren oder installieren!
 
-- Dieses Projekt **entwickelt** das STAN Framework
-- Die Hooks gehören in das **stan-plugin** (separates Repo)
-- Das stan-plugin wird dann in **andere Projekte** installiert
-- autonomous-stan schaut nur zu, entwickelt, testet
+- Dieses Projekt **entwickelt** das autonomous-stan Framework
+- Die Hooks gehören in das **autonomous-stan Plugin** (separates Repo für Installation)
+- Das Plugin wird dann in **andere Projekte** installiert
+- Hier: Entwicklung, Testing, kein Selbst-Enforcement
 
 **Wenn du STAN Hooks hier siehst → DEAKTIVIEREN, nicht nutzen.**
 
 Die Features werden hier über `/stan` Skills getestet, NICHT über Hooks.
+
+## Arbeitsweise
+
+- **Techniques nutzen:** Bei Problemen → `/stan think` oder Purpose wählen
+- **Criteria-Check:** "Würde das meine eigenen Criteria bestehen?"
+- **Parallelisierung:** Unabhängige Tasks parallel, Subagents nutzen
 
 ## WICHTIG: Single Source of Truth
 

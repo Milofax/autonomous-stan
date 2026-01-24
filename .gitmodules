@@ -13,3 +13,6 @@
 [submodule "vendor/beads"]
 	path = vendor/beads
 	url = https://github.com/steveyegge/beads.git
+[submodule "vendor/bdui"]
+	path = vendor/bdui
+	url = https://github.com/assimelha/bdui.git
