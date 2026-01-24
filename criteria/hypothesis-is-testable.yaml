@@ -1,0 +1,27 @@
+name: Hypothesis Quality
+description: Is the key hypothesis clear, testable, and evidence-based?
+
+checks:
+  - id: structure
+    question: "Does the hypothesis follow the format 'We believe... if we... because...'?"
+    required: true
+
+  - id: testable
+    question: "Is the hypothesis falsifiable? Can it be disproven?"
+    required: true
+
+  - id: specific-target
+    question: "Is the target audience specifically named (not 'users' or 'everyone')?"
+    required: true
+
+  - id: outcome-measurable
+    question: "Is the expected outcome measurably formulated?"
+    required: true
+
+  - id: rationale-grounded
+    question: "Is the rationale ('because') supported by evidence?"
+    required: true
+
+  - id: single-focus
+    question: "Does the hypothesis test exactly ONE assumption (not multiple mixed)?"
+    required: false

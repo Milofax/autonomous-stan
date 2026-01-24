@@ -1,0 +1,100 @@
+# Technique Schema v1.0
+# Each technique is atomic and can serve multiple purposes (n:m)
+
+schema:
+  technique:
+    required:
+      - id          # kebab-case, unique (e.g., "five-whys")
+      - name        # Display name (e.g., "Five Whys")
+      - description # What is this technique? (1-2 sentences)
+      - steps       # Array of steps (strings)
+      - purposes    # Array of purpose IDs (references)
+
+    optional:
+      - aliases     # Alternative names (Array)
+      - examples    # Concrete application examples (Array)
+      - source      # Origin/Framework (e.g., "BMAD", "Toyota", "Edward de Bono")
+      - duration    # Estimated duration (e.g., "5-15 min", "30-60 min")
+      - participants # Solo, Pair, Team
+      - tools       # Required tools (Array, e.g., ["Whiteboard", "Timer"])
+      - tags        # Additional categorization (Array)
+      - related     # Related techniques (Array of IDs)
+      - when_to_use # When is this technique particularly suitable?
+      - when_not    # When is this technique NOT suitable?
+      - tips        # Practical tips (Array)
+
+  purpose:
+    required:
+      - id          # kebab-case (e.g., "root-cause-analysis")
+      - name        # Display name
+      - question    # Core question this purpose answers
+      - description # What does this purpose mean?
+
+    optional:
+      - triggers    # When is this purpose relevant? (Array of situations)
+      - examples    # Examples for this purpose
+
+# The 9 Purposes
+purposes:
+  - id: root-cause-analysis
+    question: "Why did this happen? What is the root of the problem?"
+
+  - id: ideation
+    question: "What possibilities are there? What could we do?"
+
+  - id: perspective-shift
+    question: "How do others see this? What am I missing?"
+
+  - id: structured-problem-solving
+    question: "How do I proceed systematically? What are the steps?"
+
+  - id: code-review
+    question: "Is the code good? What can be improved?"
+
+  - id: big-picture
+    question: "What is the big picture? How does it all fit together?"
+
+  - id: self-reflection
+    question: "What have I learned? What am I doing well/poorly?"
+
+  - id: teamwork
+    question: "How do we work together? Who does what?"
+
+  - id: decision-making
+    question: "Which option is best? How do we decide?"
+
+# Example Technique
+example:
+  id: five-whys
+  name: "Five Whys"
+  description: "Get to the root cause by repeatedly asking 'Why'."
+  steps:
+    - "Formulate problem clearly"
+    - "Ask: 'Why did this happen?'"
+    - "Take answer as new statement"
+    - "Ask again: 'Why did THAT happen?'"
+    - "Repeat until root cause reached (typically 5x)"
+  purposes:
+    - root-cause-analysis
+    - self-reflection
+  source: "Toyota Production System"
+  duration: "5-15 min"
+  participants: "Solo or team"
+  examples:
+    - situation: "Bug found in code"
+      application: |
+        1. Why did the app crash? → Null pointer exception
+        2. Why is the pointer null? → User object not initialized
+        3. Why not initialized? → Login check skipped
+        4. Why skipped? → Feature flag set incorrectly
+        5. Why set incorrectly? → Deployment script has error
+        → Root cause: Check deployment script
+  when_to_use: "When a problem keeps occurring or the obvious cause doesn't help"
+  when_not: "For complex system problems with multiple causes (use Fishbone Diagram instead)"
+  tips:
+    - "Don't stop at exactly 5 - sometimes 3 is enough, sometimes you need 7"
+    - "Each answer should be fact-based, not speculative"
+    - "At branches: Follow all paths"
+  related:
+    - fishbone-diagram
+    - root-cause-analysis

@@ -1,0 +1,80 @@
+id: stakeholder-mapping
+name: "Stakeholder Mapping"
+description: "Identify all stakeholders and categorize by influence/interest."
+
+steps:
+  - "List all stakeholders (who is affected/involved?)"
+  - "Create matrix: X=Interest, Y=Influence"
+  - "Place each stakeholder in matrix"
+  - "Derive strategies per quadrant"
+  - "Create communication plan"
+
+purposes:
+  - perspective-shift
+  - big-picture
+  - teamwork
+
+aliases:
+  - "Stakeholder Analysis"
+  - "Power-Interest Grid"
+
+source: "Mendelow (1981)"
+duration: "30-60 min"
+participants: "Team or solo"
+tools:
+  - "2x2 Matrix"
+  - "Whiteboard/Miro"
+
+examples:
+  - situation: "Introducing new CRM system"
+    application: |
+      Stakeholders identified:
+      - CEO, CFO, Sales Team, Support, IT, Customers
+
+      Matrix:
+
+      High Influence │ Manage Closely │ Keep Satisfied │
+                     │ (CEO, Sales)   │ (CFO)          │
+      ───────────────┼────────────────┼────────────────┤
+      Low Influence  │ Keep Informed  │ Monitor        │
+                     │ (Support, IT)  │ (Customers)    │
+                     │                │                │
+                     └────────────────┴────────────────┘
+                      High Interest    Low Interest
+
+      Strategies:
+      - CEO/Sales: Regular updates, input opportunities
+      - CFO: ROI reports, budget approvals
+      - Support/IT: Training, feedback channel
+      - Customers: Communication during transition
+
+quadrants:
+  high-influence-high-interest: "Manage Closely - involve closely"
+  high-influence-low-interest: "Keep Satisfied - keep informed"
+  low-influence-high-interest: "Keep Informed - gather feedback"
+  low-influence-low-interest: "Monitor - observe"
+
+when_to_use:
+  - "Starting new project"
+  - "Change management"
+  - "Developing communication strategy"
+
+when_not:
+  - "Small project without stakeholders"
+  - "Purely technical decision"
+  - "All stakeholders already known and aligned"
+
+tips:
+  - "Consider 'hidden' stakeholders too (regulators, competitors)"
+  - "Position can change - update regularly"
+  - "Ask stakeholders, don't just assume"
+
+related:
+  - six-thinking-hats
+  - pre-mortem
+  - empathy-mapping
+
+tags:
+  - planning
+  - communication
+  - project

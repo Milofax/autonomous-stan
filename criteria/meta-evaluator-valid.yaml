@@ -1,0 +1,47 @@
+name: Evaluator Quality (Meta)
+description: What makes a good LLM-as-Judge evaluator?
+
+checks:
+  - id: grading-rubric
+    question: "Does the evaluator have a clear 1-5 grading rubric?"
+    required: true
+
+  - id: checks-from-criteria
+    question: "Do the checks exactly match the corresponding criteria YAML?"
+    required: true
+
+  - id: score-descriptions
+    question: "Does each check have descriptions for score 5, 3, and 1?"
+    required: true
+
+  - id: good-example
+    question: "Is there a complete example for score 5?"
+    required: true
+
+  - id: bad-example
+    question: "Is there a complete example for score 1-2?"
+    required: true
+
+  - id: examples-scored
+    question: "Are all examples annotated with expected scores per check?"
+    required: true
+
+  - id: json-output-format
+    question: "Is the JSON output format clearly specified?"
+    required: true
+
+  - id: passed-logic
+    question: "Is it defined when 'passed: true' applies (e.g. all required >= 4)?"
+    required: true
+
+  - id: golden-examples-exist
+    question: "Do golden example files exist (good + bad)?"
+    required: false
+
+  - id: golden-examples-varied
+    question: "Do golden examples cover different error types?"
+    required: false
+
+  - id: no-ambiguity
+    question: "Are score descriptions unambiguous (no overlap between 3 and 4)?"
+    required: false

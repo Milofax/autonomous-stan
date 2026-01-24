@@ -1,0 +1,34 @@
+id: big-picture
+name: "Big Picture"
+question: "What is the big picture? How does it all fit together?"
+
+description: |
+  Techniques for gaining overview, understanding connections,
+  and not getting lost in details.
+
+techniques:
+  - mind-mapping         # Associatively structure
+  - stakeholder-mapping  # Who is involved?
+  - fishbone-diagram     # Categorized overview
+  - divide-and-conquer   # Understand structure through decomposition
+  - brainstorming        # First collect, then structure
+
+triggers:
+  - "I don't understand this system"
+  - "How is X connected to Y?"
+  - "What have I forgotten?"
+  - "Onboarding to new project"
+  - "Creating documentation"
+
+examples:
+  - "How does this codebase work?"
+  - "Who are all the stakeholders?"
+  - "What are the components?"
+  - "How does the data flow?"
+
+recommended_start: mind-mapping
+recommended_start_reason: "Quick and visual, helps structure while learning"
+
+escalation: |
+  If Mind Map gets too chaotic: Stakeholder-Mapping for people,
+  Fishbone for categories, or formal diagrams (UML, C4).

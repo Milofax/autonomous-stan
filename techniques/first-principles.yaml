@@ -1,0 +1,65 @@
+id: first-principles
+name: "First Principles Thinking"
+description: "Reduce problem to fundamental truths and rebuild from there."
+
+steps:
+  - "Identify assumptions: What are we taking for granted?"
+  - "Question each assumption: Is this really true? Why?"
+  - "Reduce to fundamental truths: What is physically/logically impossible?"
+  - "Rebuild from fundamental truths: What solutions emerge?"
+  - "Validate new solution: Does it work in practice?"
+
+purposes:
+  - structured-problem-solving
+  - ideation
+  - big-picture
+
+aliases:
+  - "First Principles Reasoning"
+  - "Reasoning from First Principles"
+
+source: "Aristotle, popularized by Elon Musk"
+duration: "15-45 min"
+participants: "Solo or pair"
+
+examples:
+  - situation: "Electric car batteries are too expensive"
+    application: |
+      Assumption: "Batteries cost $600/kWh, that's the market price"
+
+      Questioning: Why does a battery cost so much?
+
+      Fundamental truths: Battery = Cobalt + Nickel + Aluminum + Steel + ...
+      → Raw material costs: ~$80/kWh
+
+      Rebuild: If we buy raw materials directly and combine them
+      ourselves, we can produce much cheaper
+
+      → Tesla Gigafactory: $140/kWh instead of $600/kWh
+
+when_to_use:
+  - "'That's just how it's done' as justification"
+  - "Existing system seems unchangeable"
+  - "Radical innovation sought"
+  - "Questioning costs or limitations"
+
+when_not:
+  - "Proven solution exists and works"
+  - "Time pressure (technique requires deep thinking)"
+  - "Domain knowledge lacking for fundamental truths"
+
+tips:
+  - "Distinguish facts from conventions"
+  - "Ask 'Why?' not 'How is it done?'"
+  - "Analogies are dangerous - they import assumptions"
+  - "Experts can have tunnel vision"
+
+related:
+  - five-whys
+  - reverse-thinking
+  - socratic-questioning
+
+tags:
+  - innovation
+  - analysis
+  - strategy

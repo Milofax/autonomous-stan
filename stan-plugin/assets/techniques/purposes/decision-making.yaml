@@ -1,0 +1,36 @@
+id: decision-making
+name: "Decision Making"
+question: "Which option is best? How do we decide?"
+
+description: |
+  Techniques for systematic evaluation of options and
+  well-founded decision making.
+
+techniques:
+  - decision-matrix      # Quantitative evaluation against criteria
+  - pros-cons            # Simple pro/con weighing
+  - pre-mortem           # Identify risks BEFORE decision
+  - six-thinking-hats    # Go through all perspectives
+  - dot-voting           # Democratic prioritization
+  - tree-of-thoughts     # Think through solution paths
+
+triggers:
+  - "We have multiple options"
+  - "Which framework/tool?"
+  - "Should we do X or Y?"
+  - "Decision under uncertainty"
+  - "Important crossroads"
+
+examples:
+  - "Which frontend framework to choose?"
+  - "Should we migrate or rebuild?"
+  - "Build vs. Buy?"
+  - "Which candidate to hire?"
+
+recommended_start: pros-cons
+recommended_start_reason: "Quick, intuitive, often sufficient for simple decisions"
+
+escalation: |
+  For complex decisions with many factors:
+  Decision Matrix for quantitative evaluation.
+  For important decisions: Pre-Mortem to check risks.

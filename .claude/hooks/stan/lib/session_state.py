@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-STAN Session State - Flüchtiger Zustand für eine Session
+STAN Session State - Persistent state for a session
 
-Speicherort: /tmp/claude-stan-session-{cwd_hash}.json
-Wird bei Session-Ende gelöscht.
+Storage location: .stan/session.json (in project directory)
+Persists across sessions for continuity.
 """
 
 import json
@@ -15,14 +15,41 @@ from typing import Any, Optional
 
 
 def get_session_file() -> Path:
-    """Generiere Session-Datei basierend auf CWD."""
+    """Get session file path in .stan/ directory."""
+    cwd = Path(os.getcwd())
+    stan_dir = cwd / ".stan"
+    # Create .stan directory if it doesn't exist
+    stan_dir.mkdir(exist_ok=True)
+    return stan_dir / "session.json"
+
+
+def get_old_session_file() -> Path:
+    """Get old-style session file path in /tmp/ (for migration)."""
     cwd = os.getcwd()
     cwd_hash = hashlib.md5(cwd.encode()).hexdigest()[:8]
     return Path(f"/tmp/claude-stan-session-{cwd_hash}.json")
 
 
+def migrate_session():
+    """Migrate session data from old /tmp/ location to .stan/."""
+    old_file = get_old_session_file()
+    new_file = get_session_file()
+
+    # Only migrate if old exists and new doesn't
+    if old_file.exists() and not new_file.exists():
+        try:
+            old_data = json.loads(old_file.read_text())
+            new_file.write_text(json.dumps(old_data, indent=2))
+            old_file.unlink()  # Remove old file after successful migration
+        except (json.JSONDecodeError, IOError):
+            pass  # Ignore errors, just use new location
+
+
 def load_session() -> dict:
-    """Lade Session State oder erstelle neuen."""
+    """Load session state or create new one. Migrates old sessions automatically."""
+    # Try to migrate old session from /tmp/ if it exists
+    migrate_session()
+
     session_file = get_session_file()
 
     if session_file.exists():
@@ -130,6 +157,30 @@ def clear_pending_learnings():
     set("pending_learnings", [])
 
 
+def save_pending_learnings() -> int:
+    """Speichere alle pending Learnings in Local Storage und lösche sie aus Session.
+
+    Returns:
+        Anzahl der gespeicherten Learnings.
+    """
+    # Import hier um zirkuläre Imports zu vermeiden
+    import learnings
+
+    pending = get_pending_learnings()
+    if not pending:
+        return 0
+
+    for p in pending:
+        learnings.save_learning(
+            content=p["content"],
+            context=p["context"],
+            source="auto"
+        )
+
+    clear_pending_learnings()
+    return len(pending)
+
+
 def increment_error(error_type: str) -> int:
     """Zähle Fehler hoch, return neue Anzahl."""
     state = load_session()
@@ -161,3 +212,37 @@ def clear_session():
     session_file = get_session_file()
     if session_file.exists():
         session_file.unlink()
+
+
+def get_iteration_count() -> int:
+    """Get current iteration count."""
+    return get("iteration_count", 0)
+
+
+def increment_iteration() -> int:
+    """Increment iteration counter."""
+    state = load_session()
+    count = state.get("iteration_count", 0) + 1
+    state["iteration_count"] = count
+    save_session(state)
+    return count
+
+
+def reset_iteration_count():
+    """Reset iteration counter."""
+    set("iteration_count", 0)
+
+
+def set_current_task(task_id: str | None):
+    """Set current task, reset iteration on change."""
+    state = load_session()
+    current = state.get("current_task")
+    if current != task_id:
+        state["current_task"] = task_id
+        state["iteration_count"] = 0
+        save_session(state)
+
+
+def get_current_task() -> str | None:
+    """Get current task ID."""
+    return get("current_task")

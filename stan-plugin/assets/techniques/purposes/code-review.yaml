@@ -1,0 +1,33 @@
+id: code-review
+name: "Code Review"
+question: "Is the code good? What can be improved?"
+
+description: |
+  Techniques for systematic review and improvement of code.
+  Applicable solo or in team.
+
+techniques:
+  - rubber-duck-debugging # Solo: Explain code to understand
+  - code-walkthrough      # Team: Author explains, reviewers ask
+  - tree-of-thoughts      # Think through alternative implementations
+  - five-whys             # Why is the code like this? (for legacy)
+
+triggers:
+  - "Code doesn't work"
+  - "Can someone look this over?"
+  - "Feels wrong"
+  - "Is this the best solution?"
+  - "PR review"
+
+examples:
+  - "Why does this function return wrong result?"
+  - "Is this architecture sensible?"
+  - "Are there security issues?"
+  - "Is this testable?"
+
+recommended_start: rubber-duck-debugging
+recommended_start_reason: "Immediately applicable, needs no other person"
+
+escalation: |
+  With persistent bug despite Rubber Duck: Code Walkthrough with
+  colleague - fresh eyes often see more.

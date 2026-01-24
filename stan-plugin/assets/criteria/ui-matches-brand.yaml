@@ -1,0 +1,44 @@
+name: Brand Consistency
+description: UI must be consistent with brand identity.
+
+checks:
+  - id: color-palette
+    question: "Are only colors from the defined color palette used?"
+    required: true
+
+  - id: typography
+    question: "Are only defined fonts and font sizes used?"
+    required: true
+
+  - id: spacing-system
+    question: "Does spacing follow a consistent system (4px/8px grid)?"
+    required: true
+
+  - id: component-library
+    question: "Are existing components reused instead of creating new ones?"
+    required: true
+
+  - id: iconography
+    question: "Do icons come from a consistent icon library?"
+    required: false
+
+  - id: tone-of-voice
+    question: "Does the language match the defined tone of voice?"
+    required: false
+
+  - id: logo-usage
+    question: "Is the logo used correctly (clearspace, minimum size)?"
+    required: false
+
+  - id: design-tokens
+    question: "Are design tokens/CSS variables used instead of hardcoded values?"
+    required: true
+
+  - id: dark-mode-consistent
+    question: "Is dark mode (if present) consistent with light mode?"
+    required: false
+
+  - id: style-guide-exists
+    question: "Does a style guide or design system exist as reference?"
+    required: false
+    manual: true

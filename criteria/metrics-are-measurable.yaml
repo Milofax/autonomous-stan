@@ -1,0 +1,31 @@
+name: Success Metrics Quality
+description: Are the success criteria measurable, relevant, and trackable?
+
+checks:
+  - id: metrics-defined
+    question: "Is there at least one quantitative success metric?"
+    required: true
+
+  - id: baseline-present
+    question: "Is a baseline (current value) documented for each metric?"
+    required: true
+
+  - id: target-specific
+    question: "Is a specific target defined for each metric (not 'improve')?"
+    required: true
+
+  - id: measurement-method
+    question: "Is it documented HOW each metric is measured?"
+    required: true
+
+  - id: north-star
+    question: "Is there a North Star Metric (primary success indicator)?"
+    required: true
+
+  - id: no-vanity-metrics
+    question: "Are the metrics actionable (not just vanity metrics like 'pageviews')?"
+    required: false
+
+  - id: leading-lagging
+    question: "Are there both leading and lagging indicators?"
+    required: false

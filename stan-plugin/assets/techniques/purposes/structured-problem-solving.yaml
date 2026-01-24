@@ -1,0 +1,33 @@
+id: structured-problem-solving
+name: "Structured Problem Solving"
+question: "How do I proceed systematically? What are the steps?"
+
+description: |
+  Techniques for methodical, step-by-step approach to complex
+  problems. Prevents chaotic trial-and-error.
+
+techniques:
+  - first-principles   # Reduce to fundamental truths
+  - divide-and-conquer # Break into sub-problems
+  - tree-of-thoughts   # Pursue multiple paths in parallel
+  - scamper            # Structured transformations
+
+triggers:
+  - "Problem is too big"
+  - "Where do I start?"
+  - "Everything is connected to everything"
+  - "I'm getting lost in details"
+  - "Need a plan"
+
+examples:
+  - "How do I migrate this database?"
+  - "How do I refactor this monolith?"
+  - "How do I implement feature X?"
+  - "How do I debug this system?"
+
+recommended_start: divide-and-conquer
+recommended_start_reason: "Makes large problems manageable through decomposition"
+
+escalation: |
+  If decomposition not possible (everything interconnected), use
+  First Principles to rebuild from fundamental assumptions.

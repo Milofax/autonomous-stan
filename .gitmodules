@@ -10,3 +10,6 @@
 [submodule "vendor/claude-agent-sdk"]
 	path = vendor/claude-agent-sdk
 	url = https://github.com/anthropics/claude-agent-sdk-python.git
+[submodule "vendor/beads"]
+	path = vendor/beads
+	url = https://github.com/steveyegge/beads.git

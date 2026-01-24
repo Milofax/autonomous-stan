@@ -546,6 +546,155 @@ Flexibel: Skill wählt Template basierend auf Bedarf, nicht hardcoded.
 
 ---
 
+## Dynamische Denktechniken-Bibliothek
+
+**Prinzip:** Techniken nach Zweck organisiert. "Was will ich erreichen?" → passende Techniken.
+
+### Architektur
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Denktechniken-System                                       │
+├─────────────────────────────────────────────────────────────┤
+│  Atomare Techniken (einzeln gespeichert)                    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │ Five     │ │ Shadow   │ │ SCAMPER  │ │ First    │ ...   │
+│  │ Whys     │ │ Work     │ │ Method   │ │ Principles│      │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
+├─────────────────────────────────────────────────────────────┤
+│  Zweck-basierte Organisation (n:m Beziehung)                │
+│                                                             │
+│  Zweck erkannt → Techniken anzeigen → Empfehlung → User wählt│
+├─────────────────────────────────────────────────────────────┤
+│  Dynamisches Laden zur Laufzeit                             │
+│  (NICHT als Rules - zu statisch)                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Die 9 Zwecke (finale Entscheidung)
+
+| Zweck | Frage | Techniken |
+|-------|-------|-----------|
+| **Ursachenanalyse** | Warum passiert X? | Five Whys, First Principles, Hypothesis Generation, Evidence-based Investigation, Anti-pattern Hunting, Assumption Reversal |
+| **Ideenfindung** | Welche Möglichkeiten gibt es? | What If Scenarios, Analogical Thinking, Random Stimulation, SCAMPER, Nature's Solutions, Ecosystem Thinking, Evolutionary Pressure, Reversal Inversion, Provocation Technique, Chaos Engineering, Pirate Code Brainstorm |
+| **Perspektivwechsel** | Wie sieht X aus Sicht Y aus? | Six Thinking Hats, Role Playing, Alien Anthropologist, Future Self Interview, Time Travel Talk Show |
+| **Strukturierte Problemlösung** | Wie zerlege ich X systematisch? | Mind Mapping, Morphological Analysis, Resource Constraints, Systematic Decomposition |
+| **Code-Review** | Ist dieser Code gut? | Systematic Review Checklist, Pattern Compliance Checking |
+| **Big Picture** | Wie hängt alles zusammen? | Data Flow Tracing, Pattern Identification, Ecosystem Thinking |
+| **Selbstreflexion** | Was will/fühle/denke ICH? | Inner Child Conference, Shadow Work Mining, Values Archaeology, Body Wisdom Dialogue, Permission Giving |
+| **Teamarbeit** | Wie denken wir GEMEINSAM? | Yes And Building, Brain Writing Round Robin, Ideation Relay Race |
+| **Entscheidungsfindung** | Welche Option wähle ich? | Six Thinking Hats, First Principles, Superposition Collapse |
+
+### Überschneidungen (n:m bestätigt)
+
+- Six Thinking Hats → Perspektivwechsel, Entscheidungsfindung
+- First Principles → Ursachenanalyse, Entscheidungsfindung
+- Ecosystem Thinking → Ideenfindung, Big Picture
+
+### Nutzungs-Pattern
+
+**Zwei Einstiegspunkte, gleicher Flow:**
+
+1. **User ruft Zweck-Skill auf:** `/stan think ursachenanalyse`
+2. **Claude erkennt Situation:** "Du steckst fest → Soll ich Techniken für Ursachenanalyse zeigen?"
+
+**Flow (immer gleich):**
+```
+Zweck erkannt
+    ↓
+Passende Techniken anzeigen
+    ↓
+Eine empfehlen (mit Begründung)
+    ↓
+User wählt (oder lehnt ab)
+    ↓
+Technik anwenden (mit User-Consent)
+```
+
+### Kernideen
+
+1. **Atomare Techniken:** Jede Technik einzeln gespeichert, erweiterbar
+2. **n:m Beziehung:** Eine Technik kann mehreren Zwecken dienen
+3. **Dynamisches Laden:** Skills laden Techniken zur Laufzeit basierend auf Zweck
+4. **Transparenz:** Nie Technik überstülpen, immer zeigen was existiert
+5. **Eigene Struktur:** Techniken im Projekt (BMAD als Quelle, dann unabhängig)
+
+### Quellen
+
+- **BMAD:** 62 Techniken in brain-methods.csv (explizit)
+- **PRP:** Implizite Techniken in prp-debug.md, prp-review.md, codebase-analyst.md, silent-failure-hunter.md
+
+---
+
+## Dokument-Versionierung (Lifecycle)
+
+**Prinzip:** Dokumente haben einen klaren Lebenszyklus. Status wird im Frontmatter getrackt.
+
+### 5-Stufen Status-Modell
+
+| Status | Bedeutung | Phase |
+|--------|-----------|-------|
+| `draft` | Dokument wird erstellt | DEFINE |
+| `approved` | Dokument fertig, bereit zur Verwendung | DEFINE → PLAN |
+| `in-progress` | Feature wird implementiert | CREATE |
+| `done` | Feature fertig, Dokument hat Zweck erfüllt | Nach CREATE |
+| `archived` | Historisch, aufgeräumt | Optional |
+
+### Lifecycle-Flow
+
+```
+draft ──────> approved ──────> in-progress ──────> done ──────> archived
+  │              │                  │                │            │
+  │              │                  │                │            │
+Dokument      User gibt         CREATE Phase      Feature      Optional:
+wird          OK                startet           fertig       Aufräumen
+geschrieben                                                    nach docs/archive/
+```
+
+### Status-Übergänge
+
+| Übergang | Trigger | Wer |
+|----------|---------|-----|
+| draft → approved | User bestätigt Dokument | User (manuell) |
+| approved → in-progress | CREATE Phase startet | Automatisch (stan-gate) |
+| in-progress → done | Alle Tasks abgeschlossen | Automatisch (stan-gate) |
+| done → archived | User räumt auf | User (manuell) |
+
+### Frontmatter
+
+```yaml
+---
+type: prd
+status: draft  # draft | approved | in-progress | done | archived
+created: 2026-01-22
+updated: 2026-01-22
+criteria:
+  - goal-quality
+---
+```
+
+### Archivierung
+
+**Zwei Mechanismen (beide):**
+1. Frontmatter-Status auf `archived` setzen (Source of Truth)
+2. Optional: Datei nach `docs/archive/` verschieben (für Ordnung)
+
+### Fertig-Kriterien
+
+Nur Criteria-Checks. Keine separate "TODO-Platzhalter" Prüfung.
+
+### Keine Zeit-basierte Archivierung
+
+Dokumente veralten durch Kontext (Feature fertig), nicht durch Zeit. Keine automatische 24h-Regel.
+
+### Entscheidungen (aus Recherche PRP/BMAD)
+
+- PRP: 3 Status (pending/in-progress/complete), verzeichnis-basierte Archivierung
+- BMAD: 5 Status für Stories, zeit-basierte Archivierung (24h - zu aggressiv)
+- **STAN:** 5 Status, kontext-basierte Archivierung, Frontmatter als Source of Truth
+
+---
+
 ## Templates
 
 **Format:** Markdown-Dateien mit Frontmatter
@@ -904,25 +1053,536 @@ autonomous-stan/
 7. ✓ /stan Skill: Init, Status, Phase-Navigation
 8. ✓ Learnings-Review Command (für Projekt-Ende)
 
-### Phase 4: Testing & Enforcement
-9. **Worktree-Enforcement in stan-gate** - Git-Projekte: Feature-Arbeit nur in Worktree
-10. **Unit Tests für Hooks** - pytest mit stdin/stdout Mocking
-11. **Interaktive Criteria-Tests** - LLM-as-Judge Pattern:
-    - Evaluator Templates erstellen
-    - Golden Examples (gut/schlecht) für jedes Criteria
-    - Integration in /stan healthcheck --eval-criteria
+### Phase 4: Testing & Enforcement ✓
+9. ✓ Worktree-Enforcement in stan-gate
+10. ✓ Unit Tests für Hooks (357 Tests)
+11. ✓ Interaktive Criteria-Tests (LLM-as-Judge Pattern)
 
-### Phase 5: Tiered Storage
-12. Recent → Hot Promotion (bei Mehrfachnutzung)
-13. Recent → Archive Rotation (bei Overflow)
-14. Heat Map / Usage Tracking
+### Phase 5: Tiered Storage ✓
+12. ✓ Recent → Hot Promotion (bei Mehrfachnutzung)
+13. ✓ Recent → Archive Rotation (bei Overflow)
+14. ✓ Heat Map / Usage Tracking
 
-### Phase 6: Polish
-15. Weitere Criteria Packs
-16. README Dokumentation
-17. E2E Test mit echtem Feature
+### Phase 6-11: Weitere Phasen ✓
+- ✓ Denktechniken-Bibliothek (21 Techniques, 9 Purposes)
+- ✓ Dokument-Versionierung (5-Stufen Lifecycle)
+- ✓ Criteria Packs (23 Criteria)
+- ✓ E2E Integration Tests
+- ✓ Internationalisierung (Commands auf Englisch)
+- ✓ Pre-Launch Review (Ralph/BMAD Gap Analysis)
+
+### Phase 12: Enforcement Completion ►
+15. ✓ Acceptance Criteria Completion Check (Ralph-Style Loop)
+    - Hook blockiert Commit wenn nicht alle Checkboxen abgehakt
+    - Iteration Counter mit Max 10 (wie Ralph)
+    - 357 Tests grün
+16. · Test-Projekt für Hook-Aktivierung (separates Projekt)
+
+### Phase 13: Hybrid + Gap-Analysis Items
+17. · Project Complexity Levels (0-4) - BMAD-Style Planungstiefe pro Projekt
+18. · `/stan archive` Command - Altes PRD/Plan archivieren
+19. · Max Iterations in stan.md konfigurierbar
+20. · STAN Skill erstellen (Hybrid Commands + Skills)
+
+### Phase 14: Claude Tasks Integration
+21. · Claude Tasks Adapter in `/stan create` - STAN Tasks → Claude Tasks konvertieren
+22. · Bidirektionale Sync - Claude Task completed → STAN Task ✓
+23. · Multi-Agent Owner-Zuweisung bei Parallelisierung
+24. · Session-Resume Sync - Claude Tasks State mit STAN Tasks abgleichen
+
+### Phase 15: Version-Tracking & Auto-Updates
+25. ✓ CLAUDE.md erweitern mit Version-Tracking Sektion
+
+### Phase 16: Autonomie-Features
+26. · Loop-Logik in `/stan create` (autonome Execution-Loop)
+27. · Persistent Session State (`.stan/session.json`)
+28. · Model Auto-Selection (complexity-basiert + Escalation)
+
+---
+
+## Detaillierte Task-Spezifikationen (für docs/tasks.md)
+
+### T-037: Claude Tasks Adapter in `/stan create`
+
+**Beschreibung:** Bei Start von `/stan create` werden STAN Tasks aus docs/tasks.md in Claude Tasks konvertiert.
+
+**Dependencies:** T-032 (Test-Projekt)
+
+**Dateien:**
+- `.claude/commands/stan/create.md` (erweitern)
+- `.claude/hooks/stan/lib/claude_tasks_adapter.py` (NEU)
+
+**Acceptance Criteria:**
+- [ ] Liest `ready` Tasks aus docs/tasks.md
+- [ ] Erstellt Claude Tasks via TaskCreate für jeden Task
+- [ ] Mapped Dependencies zu blockedBy
+- [ ] Setzt activeForm aus Task-Name
+
+---
+
+### T-038: Bidirektionale Sync (Claude ↔ STAN Tasks)
+
+**Beschreibung:** Wenn Claude Task completed → STAN Task in docs/tasks.md aktualisieren.
+
+**Dependencies:** T-037
+
+**Dateien:**
+- `.claude/hooks/stan/lib/claude_tasks_adapter.py`
+- `.claude/hooks/stan/post-tool-use/stan_track.py` (erweitern)
+
+**Acceptance Criteria:**
+- [ ] Erkennt TaskUpdate mit status: completed
+- [ ] Updated docs/tasks.md: `·` → `✓`
+- [ ] Prüft Acceptance Criteria (nur STAN-seitig)
+
+---
+
+### T-039: Multi-Agent Owner-Zuweisung
+
+**Beschreibung:** Bei Parallelisierung werden Claude Tasks mit owner-Feld für Subagents versehen.
+
+**Dependencies:** T-037
+
+**Dateien:**
+- `.claude/commands/stan/create.md`
+- `.claude/hooks/stan/lib/claude_tasks_adapter.py`
+
+**Acceptance Criteria:**
+- [ ] Erkennt parallele Tasks (keine gemeinsamen Dateien)
+- [ ] Setzt owner bei Task-Zuweisung an Subagent
+- [ ] Koordination via Claude Tasks Dependencies
+
+---
+
+### T-040: Session-Resume Sync
+
+**Beschreibung:** Bei Session-Resume werden Claude Tasks mit STAN Tasks abgeglichen.
+
+**Dependencies:** T-038
+
+**Dateien:**
+- `.claude/hooks/stan/user-prompt-submit/stan_context.py` (erweitern)
+
+**Acceptance Criteria:**
+- [ ] Prüft bei Session-Start ob Claude Tasks existieren
+- [ ] Vergleicht Status mit docs/tasks.md
+- [ ] Meldet Diskrepanzen
+- [ ] Synchronisiert bei Bedarf
+
+---
+
+### T-041: CLAUDE.md Version-Tracking
+
+**Beschreibung:** CLAUDE.md mit Version-Tracking Sektion erweitern.
+
+**Dependencies:** Keine
+
+**Dateien:**
+- `CLAUDE.md`
+
+**Acceptance Criteria:**
+- [ ] Sektion "Claude Code Version-Tracking"
+- [ ] Feld `claude_code_version_checked` mit Datum
+- [ ] Anweisung für automatische Prüfung bei Session-Start
+- [ ] Tabelle "Relevante Features für STAN"
+
+---
+
+**CLAUDE.md Erweiterung (sofort umsetzen):**
+
+```markdown
+## Claude Code Version-Tracking
+
+**Zuletzt geprüft:** v2.1.19 (2026-01-24)
+
+### Automatische Prüfung
+
+Bei Session-Start in diesem Projekt:
+1. Prüfe aktuelle Claude Code Version (`claude --version`)
+2. Wenn neuer als `claude_code_version_checked` → Changelog lesen
+3. Analysiere Impact auf STAN:
+   - Breaking Changes → Sofort informieren
+   - Neue Features → Prüfen ob STAN profitieren kann
+   - Bug Fixes → Relevanz für Hooks/Skills prüfen
+4. Update `claude_code_version_checked` nach Analyse
+
+### Relevante Features für STAN
+
+| Version | Feature | Impact |
+|---------|---------|--------|
+| v2.1.16 | Claude Tasks System | Hybrid-Integration geplant |
+| v2.1.19 | CLAUDE_CODE_ENABLE_TASKS env | Kann alte Todos wiederherstellen |
+```
+
+---
+
+## Complexity Levels (0-4)
+
+**Quelle:** BMAD Framework "Scale-Adaptive Levels"
+
+### Die 5 Levels
+
+| Level | Name | Planungstiefe | Beispiel |
+|-------|------|---------------|----------|
+| 0 | Trivial | Keine Planung, direkt umsetzen | Typo fixen |
+| 1 | Minimal | Nur Ziel + Tasks | Button-Farbe ändern |
+| 2 | Standard | PRD-Light (Ziel, Stories, Tasks) | Dark Mode |
+| 3 | Detailed | Volles PRD | API-Redesign |
+| 4 | Comprehensive | PRD + ADRs + Reviews | Compliance-Feature |
+
+### Lifecycle
+
+```
+1. INITIAL ASSESSMENT (Transparent)
+   ┌─────────────────────────────────────┐
+   │ Meine Einschätzung: Level 2         │
+   │ Grund: Betrifft ~5 Files, UI + Logic│
+   │                                     │
+   │ Passt das? (ja / Level anpassen)    │
+   └─────────────────────────────────────┘
+
+2. USER OVERRIDE
+   User kann korrigieren: "Nee, Level 1 reicht"
+
+3. RE-ASSESSMENT (während Arbeit)
+   Wenn sich Komplexität ändert → User informieren:
+   "Ursprünglich Level 1, jetzt Level 3 weil..."
+
+4. ESCALATION (bei großem Sprung)
+   Level 1 → Level 4 = Reconciliation vorschlagen
+```
+
+### Was beeinflusst das Level?
+
+- **Datei-Anzahl:** 1-2 Files = niedrig, 10+ Files = hoch
+- **Abhängigkeiten:** Standalone = niedrig, viele Dependencies = hoch
+- **Risiko:** Nur UI = niedrig, Datenbank/Auth = hoch
+- **Unbekannte:** Klares Konzept = niedrig, Exploration nötig = hoch
+
+### Speicherung
+
+```yaml
+# stan.md
+---
+phase: create
+complexity: 2  # 0-4
+complexity_reason: "Dark Mode: UI + Theme-System"
+---
+```
 
 **Hinweis:** Graphiti-Integration existiert bereits via taming-stan Hooks. STAN nutzt das für Query, schreibt aber nur lokal während der Arbeit.
+
+---
+
+## Archivierung
+
+**Prinzip:** Expliziter Trigger, Feature-Name, User entscheidet.
+
+### Wann archivieren?
+
+**NICHT automatisch.** Archivierung passiert NUR wenn:
+- User explizit sagt: "Das Feature ist fertig"
+- User explizit sagt: "Kannst du das alte PRD archivieren?"
+- Neues Feature startet und altes PRD stört
+
+**NICHT nach CREATE Phase.** CREATE = implementiert, aber nicht zwingend "fertig" (könnte noch Iteration kommen).
+
+### Wie archivieren?
+
+1. **Frontmatter-Status ändern:**
+   ```yaml
+   status: archived
+   archived_at: 2026-01-24
+   ```
+
+2. **Optional: Datei verschieben** nach `docs/archive/`
+
+### Dateinamen
+
+**Feature-Name, NICHT Datum:**
+- ✓ `prd-dark-mode.md`
+- ✓ `prd-auth-redesign.md`
+- ✗ `prd-2026-01-24.md` (Datum allein sagt nichts)
+
+Datum steckt im Frontmatter (`created`, `archived_at`).
+
+### `/stan archive` Command (geplant)
+
+```
+/stan archive
+
+[STAN] Aktive Dokumente mit status: done:
+  - docs/prd.md (Dark Mode)
+  - docs/plan.md
+
+Welche archivieren? (alle / auswählen / abbrechen)
+```
+
+---
+
+## Claude Tasks Integration (Hybrid-Ansatz)
+
+**Entscheidung:** Claude Tasks (v2.1.16+) als Runtime-Layer nutzen, STAN Tasks als Planning-Layer behalten.
+
+### Zwei-Schichten-Architektur
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STAN Tasks (docs/tasks.md)                                 │
+│  ═══════════════════════════                                │
+│  Planning & Documentation                                   │
+│  • Acceptance Criteria (Checkboxen)                         │
+│  • Task-Typen (auto, manual, review, gate)                  │
+│  • Phasen-Organisation                                      │
+│  • Datei-Referenzen                                         │
+│  • Iteration-Limits                                         │
+│  • Git-tracked (Source of Truth)                            │
+├─────────────────────────────────────────────────────────────┤
+│  Claude Tasks (Runtime)                                     │
+│  ═══════════════════════                                    │
+│  Execution & Coordination                                   │
+│  • Session-übergreifender State                             │
+│  • Subagent-Owner (Multi-Agent)                             │
+│  • Real-time Status                                         │
+│  • Native Dependency Blocking                               │
+│  • Spinner Feedback (activeForm)                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Synchronisation
+
+**Bei `/stan create` Start:**
+1. Lese STAN Tasks aus `docs/tasks.md`
+2. Erstelle Claude Tasks für jeden `ready` Task
+3. Setze Dependencies (blockedBy) aus STAN Dependencies
+4. Setze `owner` bei Parallelisierung
+
+**Bei Task-Abschluss:**
+1. Update Claude Task → `completed`
+2. Update STAN Task → `✓` in `docs/tasks.md`
+3. Prüfe Acceptance Criteria (nur in STAN)
+
+**Bei Session-Wechsel:**
+1. Claude Tasks bleiben erhalten (session-übergreifend)
+2. STAN Tasks in Git (persistent)
+3. Bei Resume: Sync State
+
+### Was Claude Tasks NICHT ersetzt
+
+- Acceptance Criteria (Checkboxen in docs/tasks.md)
+- Task-Typen (gate, manual, review)
+- Iteration-Limits (stan-gate Hook)
+- Task-Sizing (Criteria-basiert)
+- Phasen-Organisation
+- Git-tracked Dokumentation
+
+### Nutzen der Integration
+
+| Aspekt | Vorher (nur STAN) | Nachher (Hybrid) |
+|--------|-------------------|------------------|
+| **Multi-Agent** | Manuelle Orchestration | Native `owner` |
+| **Session-Wechsel** | State verloren | Bleibt erhalten |
+| **Dependencies** | Manuelle Prüfung | Native Blocking |
+| **Parallel-Arbeit** | Via Worktrees | + Claude Task Coordination |
+
+### Implementation
+
+Neue Tasks in Phase 14:
+- T-037: Claude Tasks Adapter in `/stan create`
+- T-038: Bidirektionale Sync (Claude ↔ STAN Tasks)
+- T-039: Multi-Agent Owner-Zuweisung
+
+---
+
+## Max Iterations
+
+**Prinzip:** Kosten-Kontrolle ohne Micromanagement.
+
+### Default: 10 Iterationen
+
+Wie Ralph. Ein Task darf max 10 Mal versucht werden bevor STOP.
+
+### Konfigurierbar in stan.md
+
+```yaml
+# stan.md
+---
+phase: create
+max_iterations: 15  # Optional, Default: 10
+---
+```
+
+### Was zählt als Iteration?
+
+Ein Versuch, die Acceptance Criteria zu erfüllen:
+1. Code ändern
+2. Tests laufen lassen
+3. Wenn fehlgeschlagen → Iteration +1
+
+### Bei Überschreitung
+
+```
+[STAN] Task T-003 nach 10 Iterationen nicht erfolgreich.
+       → Perspective Shift erforderlich
+       → Oder: Reconciliation (Requirements überdenken)
+```
+
+---
+
+## Model Auto-Selection für Subagenten
+
+**Prinzip:** Intelligente Modellwahl für Subagenten basierend auf Task-Komplexität.
+
+### Task-Property: model
+
+```yaml
+# docs/tasks.md
+- id: T-003
+  name: "Theme Toggle Component"
+  complexity: 2
+  model: auto  # auto | haiku | sonnet | opus
+```
+
+### Auto-Selection Logik
+
+| Komplexität | Modell | Begründung |
+|-------------|--------|------------|
+| 0-2 | sonnet | Ausreichend für Standard-Tasks |
+| 3-4 | opus | Komplexe Tasks brauchen mehr Reasoning |
+
+**Wichtig:** `haiku` wird NIE automatisch gewählt - nur bei explizitem Override.
+
+### Manuelle Override
+
+```yaml
+model: haiku   # Explizit für sehr einfache Tasks
+model: sonnet  # Explizit für mittlere Tasks
+model: opus    # Explizit für komplexe Tasks
+```
+
+### Model-Escalation bei Fehlschlägen
+
+```
+haiku (explicit) → fehlgeschlagen nach N Versuchen
+    ↓
+sonnet (auto-escalate)
+    ↓
+opus (auto-escalate)
+    ↓
+STOP → Human Intervention
+```
+
+**Regeln:**
+- Escalation nur bei explizitem haiku-Start
+- Bei `auto` oder `sonnet` Start: Kein Downgrade, nur Escalation zu opus
+- Bei opus-Fehlschlag: STOP (kein besseres Modell verfügbar)
+- Escalation zählt als neue Iteration
+- Notification an User bei Escalation
+
+### Begründung
+
+| Aspekt | Entscheidung | Warum |
+|--------|--------------|-------|
+| Default | sonnet | Balance zwischen Qualität und Kosten |
+| Auto-Logic | Komplexitätsbasiert | Objektives Kriterium existiert bereits |
+| Haiku | Opt-in only | Vermeidet unnötige Escalations |
+| Escalation | Automatisch | Verhindert unnötige Fehlschläge bei "zu schwachem" Modell |
+
+---
+
+## Hybrid-Architektur: Skills + Commands
+
+### Terminologie (Claude Code)
+
+| Konzept | Verzeichnis | Struktur | Aktivierung |
+|---------|-------------|----------|-------------|
+| **Commands** | `.claude/commands/` | `name.md` | Explizit via `/name` |
+| **Skills** | `.claude/skills/` | `skill-name/SKILL.md` | Automatisch via Trigger-Phrases |
+
+### Das Problem
+
+Aktuell hat STAN nur **Commands** (`.claude/commands/stan/*.md`).
+- User muss `/stan define`, `/stan plan`, `/stan create` explizit aufrufen
+- Kein fließender Workflow
+- Keine automatische Erkennung der Situation
+
+### Die Lösung: Hybrid-Ansatz
+
+**Beide Systeme parallel:**
+
+```
+.claude/
+├── skills/
+│   └── stan/
+│       ├── SKILL.md              # Automatisch: Phasen + Think erkennen
+│       └── references/
+│           ├── phase-define.md   # Detail-Instruktionen
+│           ├── phase-plan.md
+│           ├── phase-create.md
+│           └── techniques.md     # Think-Logik
+│
+└── commands/
+    └── stan/
+        ├── init.md               # Explizit: /stan init
+        ├── define.md             # Explizit: /stan define
+        ├── plan.md               # Explizit: /stan plan
+        ├── create.md             # Explizit: /stan create
+        ├── think.md              # Explizit: /stan think
+        └── ...
+```
+
+### Warum Hybrid?
+
+| Aspekt | Skill | Command |
+|--------|-------|---------|
+| **Aktivierung** | Automatisch (Phrases) | Explizit (`/stan`) |
+| **Entdeckbarkeit** | Unsichtbar | Sichtbar (Tab-Completion) |
+| **Kontrolle** | Situationsabhängig | User entscheidet |
+| **Neue User** | Verwirrend | Klar |
+| **Erfahrene User** | Fließend | Umständlich |
+
+**Fazit:** Beide Systeme ergänzen sich.
+
+### Skill Trigger-Phrases (Entwurf)
+
+```yaml
+# .claude/skills/stan/SKILL.md
+---
+name: STAN Workflow
+description: This skill should be used when the user asks to
+  "build a feature", "implement something", "start a project",
+  "create PRD", "plan tasks", "I'm stuck", "why is this happening",
+  "what options do I have", "let's think about this",
+  "was ist der Status", "neues Feature"...
+---
+```
+
+### Workflow mit Hybrid
+
+```
+User: "Ich will Feature X bauen"
+                │
+    ┌───────────┴───────────┐
+    ▼                       ▼
+  Skill                  Command
+(automatisch)           (explizit)
+    │                       │
+    ▼                       ▼
+Erkennt: Kein stan.md   User: /stan init
+→ Startet DEFINE        → Startet DEFINE
+    │                       │
+    └───────────┬───────────┘
+                ▼
+         Gleiche Logik
+      (references/*.md)
+```
+
+### Redundanz vermeiden
+
+Commands sollten **nicht** die volle Logik duplizieren. Stattdessen:
+- Skill enthält Hauptlogik in `references/`
+- Commands sind minimalistisch und verweisen auf Skill-Logik
+- Oder: Commands bleiben als sie sind, Skill lädt sie bei Bedarf
 
 ---
 
@@ -993,6 +1653,24 @@ autonomous-stan/
 | Parallelisierung nur nach PLAN | Dependencies + Datei-Berührungen müssen bekannt sein |
 | Hauptagent orchestriert | Keine automatische Parallelisierung, bewusste Entscheidung |
 | `/stan` Namespace | STAN.FLUX umbenannt zu `/stanflux:*`, `/stan` für Workflow-Framework |
+| 9 Zwecke für Denktechniken | Konsolidierung aus BMAD/PRP: Root Cause + Debugging = Ursachenanalyse, Naturinspiration + Kreativ + Unkonventionell = Ideenfindung. Big Picture statt Architektur-Analyse (allgemeiner). |
+| n:m Technik-Zweck-Beziehung | Eine Technik kann mehreren Zwecken dienen (Six Thinking Hats → Perspektivwechsel + Entscheidung) |
+| Transparenz bei Techniken | Nie Technik überstülpen, immer zeigen + empfehlen + User wählt |
+| 5-Stufen Dokument-Status | draft → approved → in-progress → done → archived. Kein Review-Status (haben Gates dafür). |
+| Kontext-basierte Archivierung | Keine Zeit-basierte Archivierung (BMAD 24h nervt). Dokumente veralten durch Kontext, nicht Zeit. |
+| Frontmatter als Source of Truth | Status im Frontmatter, optional zusätzlich nach docs/archive/ verschieben |
+| Feature-Name statt Datum | Archiv-Dateien heißen `prd-dark-mode.md` NICHT `prd-2026-01-24.md`. Datum steckt im Frontmatter. |
+| Archivierung explizit | Archivierung NUR wenn User explizit "fertig" sagt. NICHT automatisch nach CREATE. User entscheidet. |
+| Max Iterations = 10 | Default 10 Iterationen pro Task (wie Ralph). Optional in stan.md überschreibbar via `max_iterations: 15`. |
+| Hybrid Commands + Skills | Commands bleiben für explizite Aufrufe (`/stan init`). Skills zusätzlich für automatische Erkennung. Keine Redundanz: Skills verweisen auf Command-Logik. |
+| Complexity Lifecycle | Assessment transparent zeigen → User Override erlauben → Re-Assessment bei Änderung → Escalation bei großem Sprung (Level 1→4 = Reconciliation). |
+| Claude Tasks Hybrid | Claude Tasks (v2.1.16+) als Runtime-Layer für Session-State, Multi-Agent, Dependencies. STAN Tasks bleibt Planning-Layer für Acceptance Criteria, Task-Typen, Git-tracked Docs. |
+| Activity Log: NICHT umsetzen | Bewusste Entscheidung gegen Activity Log (Ralph-Style). Redundant zu Claude Tasks und docs/tasks.md. Mehr Overhead als Value. |
+| Multi-Agent Auto-Orchestration: Zukunft | Automatische Parallelisierung/Orchestration als "Future Optional". Basics (Subagents + Worktrees) existieren bereits. Vollautomatische Orchestration = Over-Engineering. |
+| Model Auto-Selection | `model: auto` als Default. Auto-Logik: complexity < 3 → sonnet, complexity ≥ 3 → opus. Haiku nur bei explizitem Override. |
+| Model Escalation | Bei Fehlschlägen: haiku → sonnet → opus → STOP. Nur bei explizitem haiku-Start. Verhindert unnötige Fehlschläge bei "zu schwachem" Modell. |
+| Persistent Session State | Session State in `.stan/session.json` statt `/tmp/`. Überlebt Session-Wechsel, Git-tracked (optional). |
+| Task Priority Default | All pending (·) tasks are REQUIRED by default. Only parked (~) or archived (§) are optional. Prevents Claude from labeling required tasks as "optional" or "enhancement". |
 
 ---
 

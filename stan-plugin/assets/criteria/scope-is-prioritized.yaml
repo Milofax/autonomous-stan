@@ -1,0 +1,31 @@
+name: Scope Quality (MoSCoW)
+description: Is the scope clearly prioritized and delineated?
+
+checks:
+  - id: moscow-used
+    question: "Is MoSCoW prioritization used (Must/Should/Could/Won't)?"
+    required: true
+
+  - id: must-have-minimal
+    question: "Are Must Haves reduced to the absolute minimum for MVP?"
+    required: true
+
+  - id: wont-have-explicit
+    question: "Is it explicitly documented what will NOT be done (Won't Have)?"
+    required: true
+
+  - id: wont-have-reasoned
+    question: "Are reasons given for Won't Have items?"
+    required: true
+
+  - id: no-scope-creep
+    question: "Are the items self-contained (no 'and also...')?"
+    required: false
+
+  - id: phases-defined
+    question: "Are implementation phases defined (MVP -> Iteration -> Polish)?"
+    required: false
+
+  - id: dependencies-clear
+    question: "Are dependencies between scope items documented?"
+    required: false

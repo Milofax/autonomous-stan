@@ -1,0 +1,71 @@
+id: round-robin
+name: "Round Robin"
+description: "Everyone takes turns speaking, no one gets skipped."
+
+steps:
+  - "Clearly formulate topic/question"
+  - "Establish order (circle, alphabetical, random)"
+  - "First person responds/shares"
+  - "Next person's turn (no interruption)"
+  - "Continue until everyone has spoken"
+  - "Optional: Multiple rounds"
+  - "At the end: Summary and discussion"
+
+purposes:
+  - teamwork
+  - perspective-shift
+
+aliases:
+  - "Go-Around"
+  - "Circle"
+
+source: "Facilitation Practice"
+duration: "10-30 min (depending on group size)"
+participants: "Team (everyone)"
+
+examples:
+  - situation: "Sprint Planning - Gathering concerns"
+    application: |
+      Question: "What could endanger this sprint?"
+
+      Round 1 (1 minute each):
+      - Alice: "API team hasn't confirmed yet"
+      - Bob: "I'm out Friday (doctor's appointment)"
+      - Carol: "Test data missing for feature X"
+      - Dave: "No concerns currently"
+      - Eva: "Design is not finalized yet"
+
+      → Everyone heard, silence is OK, no discussion during round
+
+when_to_use:
+  - "Everyone should have a voice"
+  - "Introverts are being drowned out"
+  - "Quick opinion gathering"
+  - "Check-in/check-out in meetings"
+
+when_not:
+  - "Deep discussion needed"
+  - "Expertise unevenly distributed"
+  - "Group too large (>12)"
+
+tips:
+  - "'Pass' is allowed - no pressure to speak"
+  - "Time limit per person for larger groups"
+  - "No comments on others during round"
+  - "Written variant: Everyone writes first"
+
+variants:
+  - name: "Popcorn"
+    description: "Whoever wants speaks - no fixed order"
+  - name: "Fishbowl"
+    description: "Inner circle discusses, outer observes"
+
+related:
+  - brainstorming
+  - dot-voting
+  - silent-brainstorming
+
+tags:
+  - facilitation
+  - team
+  - inclusive

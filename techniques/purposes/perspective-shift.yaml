@@ -1,0 +1,34 @@
+id: perspective-shift
+name: "Perspective Shift"
+question: "How do others see this? What am I missing?"
+
+description: |
+  Techniques for leaving one's own viewpoint and looking at problems from
+  different angles. Helps with tunnel vision.
+
+techniques:
+  - six-thinking-hats  # Systematically go through all perspectives
+  - reverse-thinking   # Consider the opposite
+  - stakeholder-mapping # All stakeholders and their views
+  - socratic-questioning # Uncover assumptions through questions
+  - pre-mortem         # Look back from the future
+
+triggers:
+  - "I'm sure, but... (warning sign!)"
+  - "How would [X] see this?"
+  - "Discussion going in circles"
+  - "Critics and optimists disagree"
+  - "Something feels wrong"
+
+examples:
+  - "How does the customer see this?"
+  - "What would a beginner ask?"
+  - "What am I overlooking?"
+  - "What risks do others see?"
+
+recommended_start: six-thinking-hats
+recommended_start_reason: "Systematically covers all perspectives, prevents bias"
+
+escalation: |
+  With persistent tunnel vision: Stakeholder-Mapping to identify ALL involved,
+  then go through their perspectives individually.

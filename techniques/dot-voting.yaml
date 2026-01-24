@@ -1,0 +1,79 @@
+id: dot-voting
+name: "Dot Voting"
+description: "Quick democratic prioritization through point allocation."
+
+steps:
+  - "List options visibly (e.g., on whiteboard)"
+  - "Each person gets X points (typically: 3-5)"
+  - "Everyone places points on preferred options simultaneously"
+  - "Points can be distributed or cumulated"
+  - "Count points and create ranking"
+  - "Discuss top options and decide"
+
+purposes:
+  - decision-making
+  - teamwork
+
+aliases:
+  - "Dotmocracy"
+  - "Multi-Voting"
+
+source: "Design Thinking / Agile Practices"
+duration: "5-15 min"
+participants: "Team (any size)"
+tools:
+  - "Sticky dots or markers"
+  - "Whiteboard/Wall"
+  - "Digital: Miro, FigJam"
+
+examples:
+  - situation: "Which features do we prioritize?"
+    application: |
+      Options (after brainstorming):
+      - Dark Mode
+      - Offline Support
+      - Push Notifications
+      - Multi-Language
+      - Export Feature
+
+      5 people, 3 points each:
+
+      Dark Mode:        ●●●●● (5)
+      Offline Support:  ●●●●●●● (7) ← Winner
+      Push Notifications: ●●● (3)
+      Multi-Language:   ●● (2)
+      Export Feature:   ● (1)
+
+      → Offline Support is prioritized
+
+when_to_use:
+  - "Many options, quick decision needed"
+  - "Democratic participation important"
+  - "After brainstorming for prioritization"
+
+when_not:
+  - "Fewer than 3 options"
+  - "Options are not comparable"
+  - "One person should decide (e.g., Product Owner)"
+
+tips:
+  - "Voting simultaneously prevents influence"
+  - "Points can also go to ONE option (cumulated)"
+  - "In case of tie: Runoff vote or discussion"
+  - "Online: Anonymous voting possible"
+
+variants:
+  - name: "Weighted Dot Voting"
+    description: "Different stakeholders have different numbers of points"
+  - name: "$100 Voting"
+    description: "Each person distributes hypothetical $100 across options"
+
+related:
+  - decision-matrix
+  - brainstorming
+  - round-robin
+
+tags:
+  - decision
+  - team
+  - quick

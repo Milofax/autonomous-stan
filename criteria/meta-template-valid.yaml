@@ -1,0 +1,43 @@
+name: Template Quality (Meta)
+description: What makes a good template? For /stan build-template.
+
+checks:
+  - id: frontmatter-valid
+    question: "Does the template have valid YAML frontmatter with 'type' and 'criteria'?"
+    required: true
+
+  - id: sections-structured
+    question: "Are sections logically organized and marked with headings?"
+    required: true
+
+  - id: placeholders-clear
+    question: "Are placeholders clearly marked ({{name}} or [description])?"
+    required: true
+
+  - id: guidance-provided
+    question: "Does each section provide hints on WHAT should go there?"
+    required: true
+
+  - id: not-prescriptive
+    question: "Does the template describe WHAT not HOW (no implementation)?"
+    required: true
+
+  - id: criteria-linked
+    question: "Are all relevant criteria linked in the frontmatter?"
+    required: true
+
+  - id: criteria-exist
+    question: "Do all linked criteria exist as YAML files?"
+    required: true
+
+  - id: readable-standalone
+    question: "Is the template understandable without additional docs?"
+    required: false
+
+  - id: examples-included
+    question: "Does the template include examples for complex sections?"
+    required: false
+
+  - id: checklist-included
+    question: "Is there a checklist at the end for self-review?"
+    required: false

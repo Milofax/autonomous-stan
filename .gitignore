@@ -40,8 +40,8 @@ build/
 *.temp
 *.log
 
-# Session state (flüchtig - STAN Framework)
-/tmp/claude-session-*.json
+# STAN Framework - Session state and local config
+.stan/
 
 # Secrets - NIEMALS committen!
 .env

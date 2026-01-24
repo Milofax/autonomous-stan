@@ -1,0 +1,26 @@
+{
+  "name": "autonomous-stan",
+  "version": "1.0.0",
+  "description": "STAN Framework - Structured Thinking for Autonomous Navigation. Lightweight framework for quality-driven autonomous implementation.",
+  "author": {
+    "name": "Milofax",
+    "url": "https://github.com/Milofax/autonomous-stan"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Milofax/autonomous-stan.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "framework",
+    "autonomous",
+    "quality",
+    "workflow",
+    "prd",
+    "planning",
+    "tdd"
+  ],
+  "commands": "./commands",
+  "hooks": "./hooks/hooks.json",
+  "rules": "./rules"
+}

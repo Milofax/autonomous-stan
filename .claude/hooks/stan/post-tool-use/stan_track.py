@@ -16,7 +16,13 @@ from pathlib import Path
 
 # Importiere Module
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
-from session_state import record_test_result, add_pending_learning, get_pending_learnings
+from session_state import (
+    record_test_result,
+    add_pending_learning,
+    get_pending_learnings,
+    increment_error,
+    reset_error_count
+)
 
 
 # Test-Command Patterns
@@ -81,6 +87,14 @@ def main():
     # Tracke Test-Ergebnis
     exit_code = extract_exit_code(tool_result)
     result = record_test_result(command, exit_code)
+
+    # 3-Strikes Error Tracking
+    if exit_code != 0:
+        # Test fehlgeschlagen → Error Counter hochzählen
+        increment_error("test_failure")
+    else:
+        # Test erfolgreich → Error Counter zurücksetzen
+        reset_error_count("test_failure")
 
     # ROT→GRÜN erkannt?
     message = None

@@ -1,0 +1,25 @@
+name: Visual Verification
+description: Ensures UI changes are visually verified in a browser before completion
+
+checks:
+  - id: browser-verified
+    question: "Has the UI change been verified in a browser?"
+    required: true
+    context: "For any story that changes UI, you MUST verify it works in the browser. Navigate to the relevant page, verify the UI changes work as expected."
+
+  - id: screenshot-taken
+    question: "Is there a screenshot documenting the change?"
+    required: false
+    context: "Screenshots provide visual evidence for progress logs and debugging."
+
+  - id: console-clean
+    question: "Is the browser console free of errors?"
+    required: true
+    context: "Check the browser console for JavaScript errors, warnings, or failed network requests."
+
+  - id: responsive-checked
+    question: "Has the change been verified on different viewport sizes?"
+    required: false
+    context: "For responsive designs, verify at least mobile (375px) and desktop (1280px) viewports."
+
+source: Ralph Framework - "Frontend stories are NOT complete until visually verified"

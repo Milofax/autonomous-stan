@@ -1,0 +1,19 @@
+name: Acceptance Criteria Quality
+description: Are acceptance criteria well defined?
+
+checks:
+  - id: measurable
+    question: "Are the criteria measurable/verifiable?"
+    required: true
+
+  - id: complete
+    question: "Do the criteria cover all aspects of the task?"
+    required: true
+
+  - id: specific
+    question: "Are the criteria specific (not vague)?"
+    required: true
+
+  - id: verifiable
+    question: "Can someone else verify if they are met?"
+    required: false

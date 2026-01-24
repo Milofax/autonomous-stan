@@ -1,0 +1,99 @@
+id: socratic-questioning
+name: "Socratic Questioning"
+description: "Uncover assumptions and foster deeper understanding through targeted questions."
+
+steps:
+  - "Identify statement/claim"
+  - "Clarification questions: 'What exactly do you mean by...?'"
+  - "Assumption questions: 'What are you assuming here?'"
+  - "Evidence questions: 'How do you know that?'"
+  - "Perspective questions: 'How would someone else see this?'"
+  - "Consequence questions: 'What follows from that?'"
+  - "Meta-questions: 'Why is this question important?'"
+
+purposes:
+  - perspective-shift
+  - root-cause-analysis
+  - self-reflection
+
+aliases:
+  - "Socratic Method"
+  - "Questioning Technique"
+
+source: "Socrates (470-399 BCE)"
+duration: "10-30 min"
+participants: "Pair or solo (self-questioning)"
+
+question_types:
+  - type: "Clarification"
+    examples:
+      - "What do you mean by that?"
+      - "Can you give an example?"
+      - "How does that relate to X?"
+
+  - type: "Probing assumptions"
+    examples:
+      - "What are you assuming here?"
+      - "Does that always have to be the case?"
+      - "What if the opposite were true?"
+
+  - type: "Probing evidence"
+    examples:
+      - "How do you know that?"
+      - "What data supports this?"
+      - "Are there counterexamples?"
+
+  - type: "Changing perspectives"
+    examples:
+      - "How would [X] see this?"
+      - "What would argue against it?"
+      - "Are there alternative explanations?"
+
+  - type: "Exploring consequences"
+    examples:
+      - "What follows from that?"
+      - "How does that affect [Y]?"
+      - "What would be the implications?"
+
+  - type: "Meta-questions"
+    examples:
+      - "Why is this question important?"
+      - "What were we originally trying to clarify?"
+      - "Are we getting closer to the goal?"
+
+examples:
+  - situation: "Developer says: 'We need microservices'"
+    application: |
+      Clarification: "What exactly do you hope to achieve with microservices?"
+      Assumption: "Why do you believe microservices will solve this?"
+      Evidence: "What specific problems do we currently have?"
+      Perspective: "What would argue against microservices?"
+      Consequence: "What does this mean for deployment/ops?"
+      Meta: "Is this about scaling or something else?"
+
+when_to_use:
+  - "Questioning assumptions"
+  - "Reaching deeper understanding"
+  - "Mentoring/coaching"
+  - "Self-reflection"
+
+when_not:
+  - "Facts are known and decision needed"
+  - "Other party feels interrogated"
+  - "Time pressure"
+
+tips:
+  - "Not an interrogation, but joint exploration"
+  - "Be genuinely curious, not rhetorical"
+  - "Patience - deep understanding takes time"
+  - "Also usable for self-questioning"
+
+related:
+  - five-whys
+  - first-principles
+  - rubber-duck-debugging
+
+tags:
+  - questioning
+  - critical-thinking
+  - coaching

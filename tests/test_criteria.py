@@ -27,6 +27,11 @@ def load_template_frontmatter(path: Path) -> dict:
         return {}
 
     frontmatter = content[3:end].strip()
+
+    # Replace template placeholders with dummy values for YAML parsing
+    import re
+    frontmatter = re.sub(r'\{\{[^}]+\}\}', '"placeholder"', frontmatter)
+
     return yaml.safe_load(frontmatter)
 
 
@@ -37,13 +42,6 @@ class TestCriteriaStructure:
         """criteria/ Verzeichnis existiert."""
         assert CRITERIA_DIR.exists()
         assert CRITERIA_DIR.is_dir()
-
-    def test_has_subdirectories(self):
-        """criteria/ hat Unterverzeichnisse (code, text, strategy)."""
-        subdirs = [d.name for d in CRITERIA_DIR.iterdir() if d.is_dir()]
-        assert "code" in subdirs
-        assert "text" in subdirs
-        assert "strategy" in subdirs
 
     def test_all_files_are_yaml(self):
         """Alle Dateien in criteria/ sind YAML."""
@@ -117,8 +115,8 @@ class TestSpecificCriteria:
     """Tests für spezifische Criteria-Dateien."""
 
     def test_tests_criteria_has_test_commands(self):
-        """code/tests.yaml hat Test-Commands."""
-        tests_yaml = CRITERIA_DIR / "code" / "tests.yaml"
+        """code-quality.yaml hat Test-Commands."""
+        tests_yaml = CRITERIA_DIR / "code-quality.yaml"
         data = load_yaml(tests_yaml)
 
         # Find auto check
@@ -131,8 +129,8 @@ class TestSpecificCriteria:
             assert len(commands) > 0, f"Check {check['id']} has no commands"
 
     def test_goal_quality_checks_smart_criteria(self):
-        """strategy/goal-quality.yaml prüft SMART Kriterien."""
-        goal_yaml = CRITERIA_DIR / "strategy" / "goal-quality.yaml"
+        """goal-is-smart.yaml prüft SMART Kriterien."""
+        goal_yaml = CRITERIA_DIR / "goal-is-smart.yaml"
         data = load_yaml(goal_yaml)
 
         check_ids = [c["id"] for c in data["checks"]]

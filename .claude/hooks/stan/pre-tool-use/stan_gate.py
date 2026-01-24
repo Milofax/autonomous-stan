@@ -6,7 +6,9 @@ Enforcement-Layer:
 - BLOCKIERT Feature-Arbeit auf main (Worktree-Enforcement)
 - BLOCKIERT Commit wenn pending_learnings existieren
 - BLOCKIERT nach 3-Strikes (gleiche Fehler)
+- BLOCKIERT bei Max Iterations (configurable, default 10)
 - Quality Gates: Tests grün vor Commit (in CREATE)
+- Automatische Dokument-Status-Übergänge
 """
 
 import json
@@ -16,6 +18,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Default max iterations (like Ralph)
+DEFAULT_MAX_ITERATIONS = 10
+
 # Importiere Module
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 from session_state import (
@@ -23,6 +28,12 @@ from session_state import (
     get_error_count,
     increment_error,
     get
+)
+from document import (
+    read_frontmatter,
+    update_document_status,
+    can_transition,
+    get_document_status
 )
 
 
@@ -222,6 +233,174 @@ Nutze `/stan reflect` um die Blockade zu lösen.
     return True, None
 
 
+def get_manifest_path() -> Path | None:
+    """Finde stan.md Manifest im aktuellen Verzeichnis."""
+    cwd = Path(os.getcwd())
+    manifest = cwd / "stan.md"
+    if manifest.exists():
+        return manifest
+    return None
+
+
+def get_max_iterations() -> int:
+    """
+    Get max_iterations from manifest, fallback to DEFAULT_MAX_ITERATIONS.
+
+    Reads the max_iterations field from stan.md frontmatter.
+    If not present or invalid, returns DEFAULT_MAX_ITERATIONS (10).
+    """
+    manifest_path = get_manifest_path()
+    if not manifest_path:
+        return DEFAULT_MAX_ITERATIONS
+
+    try:
+        content = manifest_path.read_text(encoding='utf-8')
+
+        # Parse frontmatter (between --- and ---)
+        frontmatter_match = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+        if not frontmatter_match:
+            return DEFAULT_MAX_ITERATIONS
+
+        frontmatter = frontmatter_match.group(1)
+
+        # Look for max_iterations: <number>
+        match = re.search(r'^max_iterations:\s*(\d+)', frontmatter, re.MULTILINE)
+        if match:
+            return int(match.group(1))
+
+        return DEFAULT_MAX_ITERATIONS
+
+    except (ValueError, OSError):
+        return DEFAULT_MAX_ITERATIONS
+
+
+def get_current_phase() -> str | None:
+    """Hole aktuelle Phase aus dem Manifest."""
+    manifest = get_manifest_path()
+    if not manifest:
+        return None
+
+    content = manifest.read_text(encoding='utf-8')
+
+    # Suche nach Phase-Zeile in der Status-Tabelle
+    match = re.search(r'\|\s*\*\*Phase\*\*\s*\|\s*(\w+)\s*\|', content)
+    if match:
+        return match.group(1).upper()
+
+    return None
+
+
+def get_docs_path() -> Path:
+    """Hole Pfad zum docs/ Verzeichnis."""
+    return Path(os.getcwd()) / "docs"
+
+
+def auto_transition_on_create() -> str | None:
+    """
+    Automatischer Status-Übergang wenn CREATE Phase startet.
+    approved → in-progress für PRD und Plan.
+
+    Returns: Message wenn Übergang passiert, sonst None
+    """
+    phase = get_current_phase()
+    if phase != "CREATE":
+        return None
+
+    docs_dir = get_docs_path()
+    transitions = []
+
+    # PRD
+    prd_path = docs_dir / "prd.md"
+    if prd_path.exists():
+        status = get_document_status(prd_path)
+        if status == "approved":
+            allowed, _ = can_transition("approved", "in-progress")
+            if allowed:
+                success, msg = update_document_status(prd_path, "in-progress")
+                if success:
+                    transitions.append(f"PRD: approved → in-progress")
+
+    # Plan
+    plan_path = docs_dir / "plan.md"
+    if plan_path.exists():
+        status = get_document_status(plan_path)
+        if status == "approved":
+            allowed, _ = can_transition("approved", "in-progress")
+            if allowed:
+                success, msg = update_document_status(plan_path, "in-progress")
+                if success:
+                    transitions.append(f"Plan: approved → in-progress")
+
+    if transitions:
+        return f"[STAN] Automatischer Status-Übergang:\n" + "\n".join(f"  • {t}" for t in transitions)
+
+    return None
+
+
+def check_all_tasks_done() -> bool:
+    """
+    Prüfe ob alle Tasks in plan.md als done markiert sind.
+
+    Returns: True wenn alle done
+    """
+    plan_path = get_docs_path() / "plan.md"
+    if not plan_path.exists():
+        return False
+
+    content = plan_path.read_text(encoding='utf-8')
+
+    # Zähle offene vs. erledigte Akzeptanzkriterien
+    open_criteria = len(re.findall(r'- \[ \]', content))
+    done_criteria = len(re.findall(r'- \[x\]', content, re.IGNORECASE))
+
+    # Wenn es Kriterien gibt und keine offen sind
+    if done_criteria > 0 and open_criteria == 0:
+        return True
+
+    return False
+
+
+def auto_transition_on_done() -> str | None:
+    """
+    Automatischer Status-Übergang wenn alle Tasks done.
+    in-progress → done für PRD und Plan.
+
+    Returns: Message wenn Übergang passiert, sonst None
+    """
+    if not check_all_tasks_done():
+        return None
+
+    docs_dir = get_docs_path()
+    transitions = []
+
+    # PRD
+    prd_path = docs_dir / "prd.md"
+    if prd_path.exists():
+        status = get_document_status(prd_path)
+        if status == "in-progress":
+            allowed, _ = can_transition("in-progress", "done")
+            if allowed:
+                success, msg = update_document_status(prd_path, "done")
+                if success:
+                    transitions.append(f"PRD: in-progress → done")
+
+    # Plan
+    plan_path = docs_dir / "plan.md"
+    if plan_path.exists():
+        status = get_document_status(plan_path)
+        if status == "in-progress":
+            allowed, _ = can_transition("in-progress", "done")
+            if allowed:
+                success, msg = update_document_status(plan_path, "done")
+                if success:
+                    transitions.append(f"Plan: in-progress → done")
+
+    if transitions:
+        return f"[STAN] Alle Tasks erledigt! Status-Übergang:\n" + "\n".join(f"  • {t}" for t in transitions)
+
+    return None
+
+
 def main():
     # Lese Hook-Input
     input_data = json.loads(sys.stdin.read())
@@ -268,8 +447,27 @@ def main():
     # Allgemein: 3-Strikes Check basierend auf vorherigen Fehlern
     # (Dieser würde von stan-track bei Fehlern aktiviert)
 
-    # Alles OK
-    print(json.dumps({"continue": True}))
+    # Automatische Status-Übergänge prüfen
+    messages = []
+
+    # CREATE Phase → approved → in-progress
+    transition_msg = auto_transition_on_create()
+    if transition_msg:
+        messages.append(transition_msg)
+
+    # Alle Tasks done → in-progress → done
+    done_msg = auto_transition_on_done()
+    if done_msg:
+        messages.append(done_msg)
+
+    # Output mit optionalen System-Messages
+    if messages:
+        print(json.dumps({
+            "continue": True,
+            "systemMessage": "\n\n".join(messages)
+        }))
+    else:
+        print(json.dumps({"continue": True}))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,72 @@
+id: after-action-review
+name: "After Action Review"
+description: "Structured reflection immediately after an event/operation."
+
+steps:
+  - "What was supposed to happen? (Goal/Plan)"
+  - "What actually happened? (Facts, no blame)"
+  - "Why were there differences? (Analyze causes)"
+  - "What can we learn from this? (Concrete lessons)"
+  - "What will we do differently next time? (Actions)"
+
+purposes:
+  - self-reflection
+  - root-cause-analysis
+  - teamwork
+
+aliases:
+  - "AAR"
+  - "Debriefing"
+  - "Hot Wash"
+
+source: "US Army (1970s), adapted for business"
+duration: "15-30 min"
+participants: "Team or solo"
+
+examples:
+  - situation: "After production incident"
+    application: |
+      What was supposed to happen?
+      → Deployment should go smoothly, monitoring alerts on problems
+
+      What happened?
+      → Deployment was successful, but new endpoint was unreachable
+      → 15 minutes downtime until noticed manually
+
+      Why the difference?
+      → Health check only checks old endpoints
+      → Monitoring rule too general
+
+      Learnings:
+      → Health check must include new endpoints
+      → Set up endpoint-specific alerts
+
+      Actions:
+      → Ticket: Extend health check (owner: @dev)
+      → Ticket: Conduct monitoring review (owner: @ops)
+
+when_to_use:
+  - "Directly after an event (freshness important)"
+  - "After failures/incidents"
+  - "After successes (What worked?)"
+
+when_not:
+  - "Days/weeks later (details forgotten)"
+  - "When team is emotionally charged"
+  - "Without all participants"
+
+tips:
+  - "Conduct promptly - maximum 24-48 hours later"
+  - "No blame - system, not people"
+  - "Facts first, interpretations later"
+  - "Actions MUST be specific and assigned"
+
+related:
+  - retrospective
+  - five-whys
+  - blameless-postmortem
+
+tags:
+  - reflection
+  - learning
+  - incident

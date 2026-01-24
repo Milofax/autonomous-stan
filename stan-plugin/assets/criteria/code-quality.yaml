@@ -1,0 +1,45 @@
+name: Code Quality
+description: Language-agnostic code quality checks. Use with language-specific extensions (code-quality-python, code-quality-typescript).
+
+checks:
+  - id: tests-exist
+    question: "Do tests exist for the changed code?"
+    required: true
+
+  - id: tests-pass
+    question: "Do all tests pass?"
+    required: true
+    auto: true
+    commands:
+      - pattern: "package.json"
+        command: "npm test"
+      - pattern: "pytest.ini|pyproject.toml|conftest.py"
+        command: "pytest"
+      - pattern: "Cargo.toml"
+        command: "cargo test"
+      - pattern: "go.mod"
+        command: "go test ./..."
+
+  - id: lint-pass
+    question: "Does the code pass linting?"
+    required: true
+    auto: true
+    commands:
+      - pattern: "package.json"
+        command: "npm run lint"
+      - pattern: "pyproject.toml|ruff.toml"
+        command: "ruff check ."
+      - pattern: "Cargo.toml"
+        command: "cargo clippy"
+      - pattern: "go.mod"
+        command: "golangci-lint run"
+
+  - id: typecheck-pass
+    question: "Does the code pass type checking?"
+    required: false
+    auto: true
+    commands:
+      - pattern: "tsconfig.json"
+        command: "npx tsc --noEmit"
+      - pattern: "pyproject.toml|mypy.ini"
+        command: "mypy ."

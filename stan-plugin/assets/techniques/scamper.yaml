@@ -1,0 +1,61 @@
+id: scamper
+name: "SCAMPER"
+description: "Systematically apply seven creative transformations to an existing concept."
+
+steps:
+  - "Identify existing product/concept"
+  - "S - Substitute: What can be replaced?"
+  - "C - Combine: What can be combined?"
+  - "A - Adapt: What can be adapted/adopted?"
+  - "M - Modify/Magnify: What can be enlarged/enhanced?"
+  - "P - Put to other use: What else can it be used for?"
+  - "E - Eliminate: What can be removed?"
+  - "R - Reverse/Rearrange: What can be reversed/rearranged?"
+
+purposes:
+  - ideation
+  - perspective-shift
+  - structured-problem-solving
+
+aliases:
+  - "SCAMPER Method"
+
+source: "Bob Eberle (1971), based on Alex Osborn"
+duration: "20-40 min"
+participants: "Solo or team"
+
+examples:
+  - situation: "Improve our CLI tool"
+    application: |
+      S - Substitute: Replace CLI with TUI? Config with convention?
+      C - Combine: Combine with Git hooks? Integrate with IDE?
+      A - Adapt: What does VS Code do well? What can we adopt?
+      M - Modify: More feedback? Verbose mode? Progress bars?
+      P - Put to other: Use as library? As GitHub Action?
+      E - Eliminate: Which flags does nobody need? Which dependencies?
+      R - Reverse: User configures first, then uses (instead of vice versa)?
+
+when_to_use:
+  - "Improving existing product"
+  - "Ideation after brainstorming (structured approach)"
+  - "Filling feature backlog"
+
+when_not:
+  - "Developing completely new concept"
+  - "Problem is poorly defined"
+  - "Analysis rather than creativity needed"
+
+tips:
+  - "Go through every question, even if it seems 'silly'"
+  - "Quantity over quality - filter later"
+  - "Try combinations of SCAMPER questions"
+
+related:
+  - brainstorming
+  - mind-mapping
+  - reverse-thinking
+
+tags:
+  - creativity
+  - ideation
+  - product

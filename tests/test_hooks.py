@@ -42,7 +42,7 @@ class TestStanContext:
 
         output = json.loads(mock_stdout.getvalue())
         assert output["continue"] is True
-        assert "nicht initialisiert" in output["systemMessage"]
+        assert "not initialized" in output["systemMessage"]
 
     def test_context_with_stan_md(self, tmp_path):
         """Mit stan.md wird Phase und Task angezeigt."""
@@ -314,6 +314,111 @@ class TestStanGate:
             assert output["continue"] is True
             assert "systemMessage" in output
             assert "ROT" in output["systemMessage"]
+
+
+class Test3StrikesPattern:
+    """Tests für Bug #2: 3-Strikes Error Counting Pattern."""
+
+    def test_track_increments_error_on_test_failure(self, tmp_path):
+        """Bei Test-Failure wird error_count inkrementiert."""
+        import importlib
+        import stan_track
+        import session_state
+        importlib.reload(stan_track)
+        importlib.reload(session_state)
+
+        session_file = tmp_path / "session.json"
+
+        with patch.object(session_state, 'get_session_file', return_value=session_file):
+            # Initial error count should be 0
+            assert session_state.get_error_count("test_failure") == 0
+
+            # Test fails
+            input_data = json.dumps({
+                "tool_name": "Bash",
+                "tool_input": {"command": "npm test"},
+                "tool_result": {"exit_code": 1}
+            })
+
+            with patch('sys.stdin', StringIO(input_data)):
+                with patch('sys.stdout', new_callable=StringIO):
+                    stan_track.main()
+
+            # Error count should be incremented
+            assert session_state.get_error_count("test_failure") == 1
+
+    def test_track_resets_error_on_test_success(self, tmp_path):
+        """Bei Test-Success wird error_count zurückgesetzt."""
+        import importlib
+        import stan_track
+        import session_state
+        importlib.reload(stan_track)
+        importlib.reload(session_state)
+
+        session_file = tmp_path / "session.json"
+
+        with patch.object(session_state, 'get_session_file', return_value=session_file):
+            # Set initial error count
+            session_state.increment_error("test_failure")
+            session_state.increment_error("test_failure")
+            assert session_state.get_error_count("test_failure") == 2
+
+            # Test passes
+            input_data = json.dumps({
+                "tool_name": "Bash",
+                "tool_input": {"command": "npm test"},
+                "tool_result": {"exit_code": 0}
+            })
+
+            with patch('sys.stdin', StringIO(input_data)):
+                with patch('sys.stdout', new_callable=StringIO):
+                    stan_track.main()
+
+            # Error count should be reset
+            assert session_state.get_error_count("test_failure") == 0
+
+    def test_gate_blocks_after_3_strikes(self, tmp_path):
+        """Nach 3 Strikes wird blockiert."""
+        import importlib
+        import stan_gate
+        import session_state
+        importlib.reload(stan_gate)
+        importlib.reload(session_state)
+
+        session_file = tmp_path / "session.json"
+
+        with patch.object(session_state, 'get_session_file', return_value=session_file):
+            # Simulate 3 failures
+            session_state.increment_error("test_failure")
+            session_state.increment_error("test_failure")
+            session_state.increment_error("test_failure")
+            assert session_state.get_error_count("test_failure") == 3
+
+            # Check should block
+            allowed, reason = stan_gate.check_3_strikes("test_failure")
+            assert allowed is False
+            assert "3-Strikes" in reason
+
+    def test_gate_allows_under_3_strikes(self, tmp_path):
+        """Unter 3 Strikes wird erlaubt."""
+        import importlib
+        import stan_gate
+        import session_state
+        importlib.reload(stan_gate)
+        importlib.reload(session_state)
+
+        session_file = tmp_path / "session.json"
+
+        with patch.object(session_state, 'get_session_file', return_value=session_file):
+            # Simulate 2 failures
+            session_state.increment_error("test_failure")
+            session_state.increment_error("test_failure")
+            assert session_state.get_error_count("test_failure") == 2
+
+            # Check should allow
+            allowed, reason = stan_gate.check_3_strikes("test_failure")
+            assert allowed is True
+            assert reason is None
 
 
 class TestHelperFunctions:

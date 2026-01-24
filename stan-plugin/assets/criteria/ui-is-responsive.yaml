@@ -1,0 +1,44 @@
+name: Responsive Design
+description: UI must work on different screen sizes.
+
+checks:
+  - id: mobile-first
+    question: "Was it developed mobile-first (smallest viewport first)?"
+    required: true
+
+  - id: breakpoints-defined
+    question: "Are breakpoints clearly defined and consistently used?"
+    required: true
+
+  - id: touch-targets
+    question: "Are touch targets at least 44x44px?"
+    required: true
+
+  - id: no-horizontal-scroll
+    question: "Is there no horizontal scroll on mobile devices?"
+    required: true
+
+  - id: images-responsive
+    question: "Are images responsive (srcset, picture, or max-width: 100%)?"
+    required: false
+
+  - id: text-readable
+    question: "Is text readable on all viewports (min 16px on mobile)?"
+    required: true
+
+  - id: navigation-mobile
+    question: "Is navigation usable on mobile (hamburger, bottom nav, etc.)?"
+    required: false
+
+  - id: viewport-meta
+    question: "Is the viewport meta tag correctly set?"
+    required: true
+    auto: true
+    commands:
+      - pattern: "*.html|*.tsx|*.jsx"
+        command: "grep -r 'viewport' --include='*.html' --include='index.*' | grep -q 'width=device-width'"
+
+  - id: tested-on-devices
+    question: "Was it tested on real devices or in DevTools device mode?"
+    required: false
+    manual: true

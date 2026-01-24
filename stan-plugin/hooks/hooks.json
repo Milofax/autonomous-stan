@@ -1,0 +1,44 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN Gate: Check if this Bash command is allowed.\n\n1. If committing (git commit): Check if there are pending learnings that must be saved first.\n2. If committing on main branch with feature work: Warn about worktree usage.\n3. If test command failed 3+ times with same error: Require perspective shift before retry.\n\nApprove unless one of these conditions blocks. Return 'approve' or explain why blocked."
+        }
+      ]
+    },
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN Gate: Validate file changes.\n\n1. Check if changes align with current task acceptance criteria.\n2. Verify no credentials or secrets are being written.\n3. Check file is in scope of current feature.\n\nReturn 'approve' or explain concerns."
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN Track: Analyze Bash result.\n\n1. If this was a test command (pytest, npm test, etc.):\n   - Track exit code (0=pass, non-zero=fail)\n   - If test went from FAIL to PASS: Flag as learning opportunity\n   - Remind to save learning before committing\n\n2. If same error 3+ times: Increment error counter, suggest /stan think\n\nReturn any system message to inject, or empty if none."
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN Context: Inject context into this conversation.\n\n1. Check for stan.md in project root - extract current phase and task\n2. Load relevant learnings from context\n3. If in CREATE phase: Remind about TDD and acceptance criteria\n4. If trigger words detected (fertig, passt, done): Suggest /stan complete\n\nReturn context summary to inject as system message."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+id: brainstorming
+name: "Brainstorming"
+description: "Uninhibited collection of ideas without immediate judgment."
+
+steps:
+  - "Clearly formulate the problem/topic"
+  - "Explain rules: No criticism, quantity over quality"
+  - "Set time limit (e.g., 10-15 min)"
+  - "Collect all ideas - including 'crazy' ones"
+  - "Build on others' ideas ('Yes, and...')"
+  - "After time ends: Cluster and prioritize ideas"
+
+purposes:
+  - ideation
+  - teamwork
+  - big-picture
+
+aliases:
+  - "Ideation"
+  - "Idea Collection"
+
+source: "Alex Osborn (1953)"
+duration: "15-30 min (collection) + 15-30 min (evaluation)"
+participants: "Team (3-8 optimal)"
+tools:
+  - "Sticky Notes"
+  - "Whiteboard"
+  - "Timer"
+
+examples:
+  - situation: "New features for mobile app"
+    application: |
+      Rules: No criticism, wild ideas welcome
+      Time limit: 15 minutes
+
+      Collected:
+      - Offline mode
+      - Voice Commands
+      - AR Integration
+      - Gamification
+      - Wellness features
+      - AI Assistant
+      - Social features
+      - ...
+
+      Clustering:
+      ├── Core Features (Offline, Performance)
+      ├── Innovation (AR, AI)
+      └── Engagement (Gamification, Social)
+
+rules:
+  - "No criticism during brainstorming"
+  - "Wild ideas welcome"
+  - "Quantity over quality"
+  - "Building on ideas allowed"
+
+when_to_use:
+  - "New ideas needed"
+  - "Team should be involved"
+  - "Creative phase of a project"
+
+when_not:
+  - "Deciding between known options"
+  - "Analytical problem"
+  - "Introverted team without preparation"
+
+tips:
+  - "Warm-up: First unrelated brainstorming"
+  - "Facilitator ensures rules are followed"
+  - "Silent variant for introverts: Brainwriting"
+  - "Diverge, THEN converge"
+
+related:
+  - brainwriting
+  - mind-mapping
+  - scamper
+  - round-robin
+
+tags:
+  - creativity
+  - team
+  - ideation
