@@ -6,7 +6,8 @@ Start the CREATE phase (autonomous execution).
 
 1. Check preconditions:
    - `stan.md` exists?
-   - At least 1 task `status: ready`?
+   - `.stan/tasks.jsonl` exists?
+   - At least 1 ready task (use `get_ready_tasks()`)?
    - If no: Notify and STOP
 
 2. Check current phase:
@@ -24,20 +25,40 @@ Start the CREATE phase (autonomous execution).
      ```
 
 3. CREATE is AUTONOMOUS:
-   - Work through tasks in order
-   - Respect dependencies
+   - Work through tasks from JSONL
+   - Use `get_ready_tasks()` to find next task
+   - Respect dependencies (handled by ready check)
    - Run tests after each change
    - Commit after each completed task
    - Maintain activity log (see below)
 
-4. Per task:
-   - Set task to `status: in_progress` in stan.md
-   - Implement according to acceptance criteria
+4. Per task (JSONL-based):
+   ```python
+   from task_schema import get_ready_tasks, update_task
+   from task_generator import regenerate_tasks_md
+
+   # Get next ready task
+   ready = get_ready_tasks()
+   if not ready:
+       # All done!
+       break
+   task = ready[0]
+
+   # Mark as in progress
+   update_task(task.id, status="in_progress")
+   regenerate_tasks_md()
+
+   # ... implement task ...
+
+   # Mark as done
+   update_task(task.id, status="done")
+   regenerate_tasks_md()
+   ```
    - **For UI stories:** Verify in browser (see Visual Verification)
    - Run relevant tests
    - If GREEN: Set task to `status: done`
    - Append to activity log
-   - Commit with reference to task
+   - Commit with reference to task ID (t-xxxx)
 
 5. On problems:
    - Observe 3-strikes rule

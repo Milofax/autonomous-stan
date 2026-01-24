@@ -4,19 +4,37 @@ Initialize a STAN project in the current directory.
 
 ## Instructions
 
-### 1. Check for Existing Project
+### 1. Create .stan/ Directory Structure
+
+First, create the `.stan/` directory structure:
+
+1. Create `.stan/` directory
+2. Create empty `.stan/tasks.jsonl` file
+3. Create `.stan/completed/` directory for archived features
+4. Verify `.gitignore` contains `.stan/session.json` (session state should not be committed)
+
+**Note:** The `.stan/` directory should already be in `.gitignore` for the entire framework. Only `session.json` specifically needs to be gitignored within a project.
+
+Display message:
+```
+[STAN] Initialized .stan/ directory structure:
+  - .stan/tasks.jsonl (task storage)
+  - .stan/completed/ (for completed features)
+```
+
+### 2. Check for Existing Project
 
 Check if a `stan.md` already exists:
 - If yes: Ask if it should be overwritten
 - If no: Continue
 
-### 2. Check for Existing Config
+### 3. Check for Existing Config
 
 Check if `.stan/config.yaml` exists:
 - If yes: Load existing config, offer to update
-- If no: Run config setup (Step 3)
+- If no: Run config setup (Step 4)
 
-### 3. Config Setup (Interactive)
+### 4. Config Setup (Interactive)
 
 Use AskUserQuestion to collect user preferences:
 
@@ -41,7 +59,7 @@ Use AskUserQuestion to collect user preferences:
 
 Save config to `.stan/config.yaml` using the config module.
 
-### 4. Collect Project Information (Interactive)
+### 5. Collect Project Information (Interactive)
 
 - **Project Name:** What is the project called?
 - **Description:** Brief description in 1-2 sentences
@@ -57,7 +75,7 @@ Save config to `.stan/config.yaml` using the config module.
 
 Show your initial assessment with reasoning, then ask if the user agrees or wants to adjust.
 
-### 5. Create Project Files
+### 6. Create Project Files
 
 1. Create `stan.md` based on template:
    - Use template from `templates/stan.md.template`
@@ -67,14 +85,21 @@ Show your initial assessment with reasoning, then ask if the user agrees or want
 
 2. Create `docs/` directory if it doesn't exist
 
-### 6. Confirm Initialization
+### 7. Confirm Initialization
 
 ```
 STAN initialized!
 
 Project: {name}
 Phase: DEFINE
-Config: .stan/config.yaml
+
+Structure created:
+  - .stan/              (STAN data directory)
+  - .stan/tasks.jsonl   (task storage)
+  - .stan/completed/    (completed features archive)
+  - .stan/config.yaml   (user preferences)
+  - stan.md             (project manifest)
+  - docs/               (documentation)
 
 Next step: /stan define
 ```

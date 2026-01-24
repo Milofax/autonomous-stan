@@ -2,11 +2,59 @@
 
 Complete a feature and archive all related documents as a package.
 
+**"Land the Plane" Pattern:** This skill enforces mandatory completion steps including git push.
+
 ## Instructions
+
+### 0. Pre-Completion Verification (MANDATORY)
+
+Before anything else, verify all requirements are met:
+
+1. **Load tasks from JSONL:**
+   ```python
+   from task_schema import load_tasks, get_tasks_by_status
+   tasks = load_tasks()  # From .stan/tasks.jsonl
+   ```
+
+2. **Check all tasks are done:**
+   ```python
+   pending = get_tasks_by_status("pending")
+   in_progress = get_tasks_by_status("in_progress")
+   if pending or in_progress:
+       # BLOCK completion
+   ```
+
+3. **If incomplete tasks exist:**
+   ```
+   [STAN] Cannot complete - incomplete tasks remain!
+
+   In Progress: {count}
+   Pending: {count}
+
+   All tasks must be done before completing.
+   Use /stan statusupdate to see remaining work.
+   ```
+   **STOP - Do not proceed.**
+
+4. **Run quality checks:**
+   - Tests must pass: `npm test` or `pytest`
+   - Typecheck must pass (if configured)
+   - Lint must pass (if configured)
+
+5. **If quality checks fail:**
+   ```
+   [STAN] Cannot complete - quality checks failed!
+
+   Failed: {check_name}
+   Error: {error_message}
+
+   Fix issues before completing.
+   ```
+   **STOP - Do not proceed.**
 
 ### 1. Confirm Completion
 
-Before completing, ask for confirmation:
+After verification passes, ask for confirmation:
 
 ```
 You want to complete this feature?
@@ -79,19 +127,73 @@ Options:
 
 This is optional. Local learnings remain in `~/.stan/learnings/` either way.
 
-### 6. Completion Message
+### 6. Git Commit & Push (MANDATORY - "Land the Plane")
+
+**This step is NOT optional.** Every completed feature must be pushed.
+
+1. **Stage completion changes:**
+   ```bash
+   git add .stan/completed/
+   git add docs/prd.md docs/plan.md docs/tasks.md
+   git add .stan/tasks.jsonl
+   ```
+
+2. **Create completion commit:**
+   ```bash
+   git commit -m "feat: complete {feature-name}
+
+   - All tasks done
+   - Documents archived to .stan/completed/
+   - Fresh files ready for next feature
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+   ```
+
+3. **Push to remote (MANDATORY):**
+   ```bash
+   git push
+   ```
+
+4. **If push fails:**
+   - Pull and merge/rebase first
+   - Resolve conflicts if any
+   - Push again
+   - **Do NOT skip the push**
+
+### 7. Final Completion Message
+
+Only show this AFTER successful git push:
 
 ```
-Feature completed!
+[STAN] Feature Complete!
+
+Feature: {feature_name}
+Status: All tasks done, pushed to remote
 
 Archived to: .stan/completed/
 - prd-{feature-slug}.md
 - plan-{feature-slug}.md
 - tasks-{feature-slug}.md
 
+Git: Committed and pushed to {branch}
+
 Fresh files created in docs/ for next feature.
 
 Ready for: /stan define (new feature)
+```
+
+**If git push was not possible (e.g., no remote configured):**
+```
+[STAN] Feature Complete (local only)
+
+Feature: {feature_name}
+Status: All tasks done
+
+WARNING: No remote configured - changes not pushed!
+Remember to push manually when remote is set up.
+
+Archived to: .stan/completed/
+...
 ```
 
 ## Trigger Words
@@ -106,12 +208,26 @@ When these words are detected after CREATE phase is done, suggest running `/stan
 
 ## Important
 
-- **NEVER** complete without explicit confirmation
+**Pre-Completion (MANDATORY):**
+- All tasks in `.stan/tasks.jsonl` MUST be status `done`
+- Quality checks (tests, typecheck, lint) MUST pass
+- **NEVER** skip pre-completion verification
+
+**Confirmation:**
+- **NEVER** complete without explicit user confirmation
 - Feature name in filename, NOT date (date is only in frontmatter)
 - All 3 documents move together as a package
+
+**Git ("Land the Plane"):**
+- Git push is **MANDATORY**, not optional
+- If push fails, resolve and retry - do NOT skip
+- Only show final completion message AFTER successful push
+- Exception: No remote configured → warn user, complete locally
+
+**Optional:**
+- Learnings promotion to Graphiti is OPTIONAL
 - Fresh files are created from templates for next feature
 - This keeps `docs/` clean - only current feature visible
-- Learnings promotion to Graphiti is OPTIONAL
 
 ## Directory Structure
 

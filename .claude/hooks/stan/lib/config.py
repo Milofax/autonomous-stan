@@ -19,6 +19,15 @@ except ImportError:
     YAML_AVAILABLE = False
 
 
+# --- Path Constants ---
+
+STAN_DIR = ".stan"
+TASKS_FILE = ".stan/tasks.jsonl"
+SESSION_FILE = ".stan/session.json"
+COMPLETED_DIR = ".stan/completed"
+CONFIG_FILE = ".stan/config.yaml"
+
+
 # --- Config Location ---
 
 def get_project_root() -> Path:
@@ -26,14 +35,112 @@ def get_project_root() -> Path:
     return Path(os.getcwd())
 
 
-def get_config_dir() -> Path:
+def get_stan_dir() -> Path:
     """Get .stan/ directory path."""
-    return get_project_root() / ".stan"
+    return get_project_root() / STAN_DIR
+
+
+def get_config_dir() -> Path:
+    """Get .stan/ directory path (alias for get_stan_dir for backwards compatibility)."""
+    return get_stan_dir()
 
 
 def get_config_file() -> Path:
     """Get config file path."""
-    return get_config_dir() / "config.yaml"
+    return get_project_root() / CONFIG_FILE
+
+
+def get_tasks_file() -> Path:
+    """Get tasks.jsonl file path."""
+    return get_project_root() / TASKS_FILE
+
+
+def get_session_file() -> Path:
+    """Get session.json file path."""
+    return get_project_root() / SESSION_FILE
+
+
+def get_completed_dir() -> Path:
+    """Get completed/ directory path."""
+    return get_project_root() / COMPLETED_DIR
+
+
+def ensure_stan_dir() -> Path:
+    """
+    Create .stan/ directory if it doesn't exist.
+
+    Returns:
+        Path to the .stan/ directory.
+    """
+    stan_dir = get_stan_dir()
+    stan_dir.mkdir(parents=True, exist_ok=True)
+    return stan_dir
+
+
+def ensure_completed_dir() -> Path:
+    """
+    Create .stan/completed/ directory if it doesn't exist.
+
+    Returns:
+        Path to the .stan/completed/ directory.
+    """
+    completed_dir = get_completed_dir()
+    completed_dir.mkdir(parents=True, exist_ok=True)
+    return completed_dir
+
+
+def is_stan_initialized() -> bool:
+    """
+    Check if STAN is initialized in the current project.
+
+    Returns:
+        True if .stan/ directory and tasks.jsonl exist.
+    """
+    stan_dir = get_stan_dir()
+    tasks_file = get_tasks_file()
+    return stan_dir.exists() and tasks_file.exists()
+
+
+def initialize_stan_structure() -> dict:
+    """
+    Initialize the .stan/ directory structure.
+
+    Creates:
+        - .stan/ directory
+        - .stan/tasks.jsonl (empty)
+        - .stan/completed/ directory
+
+    Returns:
+        Dict with created paths and status.
+    """
+    result = {
+        "stan_dir": None,
+        "tasks_file": None,
+        "completed_dir": None,
+        "already_initialized": False
+    }
+
+    # Check if already initialized
+    if is_stan_initialized():
+        result["already_initialized"] = True
+        result["stan_dir"] = get_stan_dir()
+        result["tasks_file"] = get_tasks_file()
+        result["completed_dir"] = get_completed_dir()
+        return result
+
+    # Create .stan/ directory
+    result["stan_dir"] = ensure_stan_dir()
+
+    # Create empty tasks.jsonl
+    tasks_file = get_tasks_file()
+    if not tasks_file.exists():
+        tasks_file.touch()
+    result["tasks_file"] = tasks_file
+
+    # Create completed/ directory
+    result["completed_dir"] = ensure_completed_dir()
+
+    return result
 
 
 # --- Data Classes ---

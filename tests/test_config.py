@@ -318,5 +318,181 @@ class TestYAMLFallback:
         assert result is False
 
 
+class TestPathConstants:
+    """Tests for Path Constants."""
+
+    def test_stan_dir_constant(self):
+        """STAN_DIR constant is correct."""
+        assert config.STAN_DIR == ".stan"
+
+    def test_tasks_file_constant(self):
+        """TASKS_FILE constant is correct."""
+        assert config.TASKS_FILE == ".stan/tasks.jsonl"
+
+    def test_session_file_constant(self):
+        """SESSION_FILE constant is correct."""
+        assert config.SESSION_FILE == ".stan/session.json"
+
+    def test_completed_dir_constant(self):
+        """COMPLETED_DIR constant is correct."""
+        assert config.COMPLETED_DIR == ".stan/completed"
+
+    def test_config_file_constant(self):
+        """CONFIG_FILE constant is correct."""
+        assert config.CONFIG_FILE == ".stan/config.yaml"
+
+
+class TestPathFunctions:
+    """Tests for Path Functions."""
+
+    def test_get_stan_dir(self, tmp_path, monkeypatch):
+        """get_stan_dir returns correct path."""
+        monkeypatch.chdir(tmp_path)
+        result = config.get_stan_dir()
+        assert result == tmp_path / ".stan"
+
+    def test_get_tasks_file(self, tmp_path, monkeypatch):
+        """get_tasks_file returns correct path."""
+        monkeypatch.chdir(tmp_path)
+        result = config.get_tasks_file()
+        assert result == tmp_path / ".stan" / "tasks.jsonl"
+
+    def test_get_session_file(self, tmp_path, monkeypatch):
+        """get_session_file returns correct path."""
+        monkeypatch.chdir(tmp_path)
+        result = config.get_session_file()
+        assert result == tmp_path / ".stan" / "session.json"
+
+    def test_get_completed_dir(self, tmp_path, monkeypatch):
+        """get_completed_dir returns correct path."""
+        monkeypatch.chdir(tmp_path)
+        result = config.get_completed_dir()
+        assert result == tmp_path / ".stan" / "completed"
+
+    def test_get_config_dir_alias(self, tmp_path, monkeypatch):
+        """get_config_dir is an alias for get_stan_dir."""
+        monkeypatch.chdir(tmp_path)
+        assert config.get_config_dir() == config.get_stan_dir()
+
+
+class TestEnsureFunctions:
+    """Tests for Ensure Functions."""
+
+    def test_ensure_stan_dir_creates_directory(self, tmp_path, monkeypatch):
+        """ensure_stan_dir creates .stan/ directory."""
+        monkeypatch.chdir(tmp_path)
+        assert not (tmp_path / ".stan").exists()
+
+        result = config.ensure_stan_dir()
+
+        assert result == tmp_path / ".stan"
+        assert (tmp_path / ".stan").is_dir()
+
+    def test_ensure_stan_dir_idempotent(self, tmp_path, monkeypatch):
+        """ensure_stan_dir is idempotent (can be called multiple times)."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".stan").mkdir()
+
+        result = config.ensure_stan_dir()
+
+        assert result == tmp_path / ".stan"
+        assert (tmp_path / ".stan").is_dir()
+
+    def test_ensure_completed_dir_creates_directory(self, tmp_path, monkeypatch):
+        """ensure_completed_dir creates .stan/completed/ directory."""
+        monkeypatch.chdir(tmp_path)
+        assert not (tmp_path / ".stan" / "completed").exists()
+
+        result = config.ensure_completed_dir()
+
+        assert result == tmp_path / ".stan" / "completed"
+        assert (tmp_path / ".stan" / "completed").is_dir()
+
+    def test_ensure_completed_dir_creates_parents(self, tmp_path, monkeypatch):
+        """ensure_completed_dir creates parent .stan/ directory."""
+        monkeypatch.chdir(tmp_path)
+        assert not (tmp_path / ".stan").exists()
+
+        config.ensure_completed_dir()
+
+        assert (tmp_path / ".stan").is_dir()
+        assert (tmp_path / ".stan" / "completed").is_dir()
+
+
+class TestIsStanInitialized:
+    """Tests for is_stan_initialized function."""
+
+    def test_not_initialized_when_nothing_exists(self, tmp_path, monkeypatch):
+        """is_stan_initialized returns False when nothing exists."""
+        monkeypatch.chdir(tmp_path)
+        assert config.is_stan_initialized() is False
+
+    def test_not_initialized_when_only_directory_exists(self, tmp_path, monkeypatch):
+        """is_stan_initialized returns False when only directory exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".stan").mkdir()
+        assert config.is_stan_initialized() is False
+
+    def test_initialized_when_directory_and_tasks_exist(self, tmp_path, monkeypatch):
+        """is_stan_initialized returns True when directory and tasks.jsonl exist."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".stan").mkdir()
+        (tmp_path / ".stan" / "tasks.jsonl").touch()
+        assert config.is_stan_initialized() is True
+
+
+class TestInitializeStanStructure:
+    """Tests for initialize_stan_structure function."""
+
+    def test_creates_all_structures(self, tmp_path, monkeypatch):
+        """initialize_stan_structure creates all necessary structures."""
+        monkeypatch.chdir(tmp_path)
+
+        result = config.initialize_stan_structure()
+
+        assert result["stan_dir"] == tmp_path / ".stan"
+        assert result["tasks_file"] == tmp_path / ".stan" / "tasks.jsonl"
+        assert result["completed_dir"] == tmp_path / ".stan" / "completed"
+        assert result["already_initialized"] is False
+
+        assert (tmp_path / ".stan").is_dir()
+        assert (tmp_path / ".stan" / "tasks.jsonl").exists()
+        assert (tmp_path / ".stan" / "completed").is_dir()
+
+    def test_returns_already_initialized_when_exists(self, tmp_path, monkeypatch):
+        """initialize_stan_structure returns already_initialized=True when exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".stan").mkdir()
+        (tmp_path / ".stan" / "tasks.jsonl").touch()
+
+        result = config.initialize_stan_structure()
+
+        assert result["already_initialized"] is True
+        assert result["stan_dir"] == tmp_path / ".stan"
+
+    def test_idempotent_structure_creation(self, tmp_path, monkeypatch):
+        """initialize_stan_structure is idempotent."""
+        monkeypatch.chdir(tmp_path)
+
+        # First call
+        config.initialize_stan_structure()
+
+        # Second call
+        result = config.initialize_stan_structure()
+
+        assert result["already_initialized"] is True
+        assert (tmp_path / ".stan").is_dir()
+        assert (tmp_path / ".stan" / "tasks.jsonl").exists()
+
+    def test_tasks_file_is_empty(self, tmp_path, monkeypatch):
+        """initialize_stan_structure creates empty tasks.jsonl."""
+        monkeypatch.chdir(tmp_path)
+
+        config.initialize_stan_structure()
+
+        tasks_file = tmp_path / ".stan" / "tasks.jsonl"
+        assert tasks_file.read_text() == ""
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
