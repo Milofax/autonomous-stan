@@ -126,7 +126,9 @@ class TestPluginHooksConfig:
         hooks_path = PLUGIN_DIR / "hooks" / "hooks.json"
         if not hooks_path.exists():
             pytest.skip("hooks.json not yet created")
-        return json.loads(hooks_path.read_text())
+        data = json.loads(hooks_path.read_text())
+        # Support both flat format and nested {hooks: {...}} format
+        return data.get("hooks", data)
 
     def test_has_pre_tool_use_hooks(self, hooks_config):
         """Should have PreToolUse hooks configured."""
@@ -199,7 +201,11 @@ class TestPluginInstallability:
 
     def test_plugin_has_no_absolute_paths(self):
         """Plugin should not have hardcoded absolute paths."""
-        plugin_files = list(PLUGIN_DIR.rglob("*"))
+        skip_dirs = {"vendor", "submodules", "experiments", ".git", ".claude", "node_modules", ".stan"}
+        plugin_files = [
+            f for f in PLUGIN_DIR.rglob("*")
+            if not any(part in skip_dirs for part in f.parts)
+        ]
 
         problematic_files = []
         for f in plugin_files:

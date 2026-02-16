@@ -109,7 +109,7 @@ def get_template_criteria(template_name: str) -> list[str]:
     Returns:
         List of criteria names from template frontmatter
     """
-    from .frontmatter import parse_frontmatter
+    from frontmatter import parse_frontmatter
 
     template_path = get_templates_dir() / template_name
     if not template_path.exists():
@@ -131,7 +131,7 @@ def get_template_for_type(doc_type: str) -> Optional[str]:
     """
     templates_dir = get_templates_dir()
     for template in templates_dir.glob("*.template"):
-        from .frontmatter import parse_frontmatter
+        from frontmatter import parse_frontmatter
         fm = parse_frontmatter(template)
         if fm.get("type") == doc_type:
             return template.name

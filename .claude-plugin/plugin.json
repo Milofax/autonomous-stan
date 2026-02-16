@@ -11,6 +11,10 @@
     "type": "git",
     "url": "https://github.com/Milofax/autonomous-stan.git"
   },
+  "commands": "commands/stan",
+  "hooks": "hooks/hooks.json",
+  "skills": "skills",
+  "rules": "rules",
   "license": "MIT",
   "keywords": [
     "workflow",

@@ -145,7 +145,7 @@ def get_purposes_for_techniques(techniques: list[str]) -> set[str]:
     Returns:
         Set of purpose IDs covered by these techniques
     """
-    from .techniques import get_technique
+    from techniques import get_technique
 
     purposes = set()
     for tech_id in techniques:
