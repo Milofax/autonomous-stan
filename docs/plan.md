@@ -2538,3 +2538,35 @@ If issues remain, list them specifically so the agent can address them.
 - `vendor/beads/AGENTS.md` - Agent Instructions (mandatory push)
 - `.claude/rules/taming-stan/stanflux.md` - STAN.FLUX Verhaltensregeln
 - Context7: `/anthropics/claude-code` - Hook-Dokumentation
+
+---
+
+### Phase 20: Agent Teams Integration (Future)
+
+**Voraussetzung:** CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS stable
+**Abhängig von:** Phase 19 (Evaluator-Hooks) abgeschlossen
+
+| Task | Beschreibung | Status |
+|------|--------------|--------|
+| T-001 | `/stan create --team` Modus: Lead + N Teammates | · |
+| T-002 | Evaluator als eigener Teammate (statt Prompt-Hook) | · |
+| T-003 | Researcher-Teammate für Codebase-Analyse vor Implementation | · |
+| T-004 | Parallel-Debugging: N Hypothesen gleichzeitig testen | · |
+| T-005 | Plan-Approval Integration mit Criteria-System | · |
+| T-006 | Fallback: Ohne Teams graceful auf Single-Agent + Hooks | · |
+
+**Architektur-Idee:**
+```
+/stan create --team
+  ├── Lead (Delegate Mode): Koordiniert, prüft Criteria
+  ├── Implementer: Baut Feature (eigener Context)
+  ├── Evaluator: Prüft gegen Criteria (eigener Context, kein Self-Serving Bias)
+  └── Researcher: Analysiert Codebase-Patterns vor Implementation
+```
+
+**Warum erst Phase 20:**
+- Feature ist experimental (ENV Flag)
+- Plugin muss OHNE Teams funktionieren (Hooks als Fallback)
+- Token-Kosten: Jeder Teammate = separate Claude-Instanz
+- Erst Praxis-Test (Phase 19, E-005) zeigt ob Hooks allein reichen
+
