@@ -16,3 +16,9 @@
 [submodule "vendor/bdui"]
 	path = vendor/bdui
 	url = https://github.com/assimelha/bdui.git
+[submodule "vendor/everything-claude-code"]
+	path = vendor/everything-claude-code
+	url = https://github.com/affaan-m/everything-claude-code
+[submodule "vendor/get-shit-done"]
+	path = vendor/get-shit-done
+	url = https://github.com/glittercowboy/get-shit-done

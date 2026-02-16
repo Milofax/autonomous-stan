@@ -98,6 +98,47 @@ Tasks mit verschiedenen Dateien können parallel bearbeitet werden. Der Hauptage
 
 Learnings werden automatisch erkannt (Test ROT→GRÜN) und müssen vor Commit gespeichert werden.
 
+## Core Concepts
+
+### Entity Model
+
+autonomous-stan besteht aus klar definierten Entitäten:
+
+```
+Template ──1:n──> Document              Criteria ──1:n──> Check
+    │                │                      ▲
+    └── criteria ────┴──────────────────────┘
+
+Task ─── acceptance_criteria ───> {criteria-name} oder "free text"
+    └── dependencies ───> Task
+
+Purpose ──n:m──> Technique
+```
+
+### Die Entitäten
+
+| Entität | Was | Wo |
+|---------|-----|-----|
+| **Template** | Vorlage für Dokumente | `templates/*.template` |
+| **Document** | Erstelltes Dokument (PRD, Plan) | `docs/*.md` |
+| **Task** | Arbeitseinheit mit Acceptance Criteria | `.stan/tasks.jsonl` |
+| **Criteria** | YAML mit Qualitätsprüfungen (Checks) | `criteria/*.yaml` |
+| **Purpose** | Einstiegspunkt für Denkmethoden | `techniques/purposes/*.yaml` |
+| **Technique** | Konkrete Denkmethode (Five Whys, etc.) | `techniques/*.yaml` |
+
+### Zwei Ebenen von Criteria
+
+| Ebene | Syntax | Prüft |
+|-------|--------|-------|
+| **Document-level** | Frontmatter: `criteria: [text-quality]` | Ganzes Dokument |
+| **Task-level** | `"Tests pass {code-quality}"` | Implementierung |
+
+**Task Acceptance Criteria** können sein:
+- `"Text {criteria-name}"` → Lädt YAML, Evaluator-Model aus YAML
+- `"Freier Text"` → Success Criteria, immer Sonnet (semantisch)
+
+→ Vollständige Syntax: [docs/plan.md - Entity Syntax](docs/plan.md#entity-syntax-specifications)
+
 ## Standalone-Nutzung
 
 Jede Komponente funktioniert auch einzeln:

@@ -1,0 +1,29 @@
+{
+  "description": "Experiment: Evaluator Hook Test",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are an INDEPENDENT EVALUATOR. Analyze the edit that was just made. Check: 1) Was the change meaningful? 2) Does it introduce any issues? 3) Is the code/content complete? Return JSON: {\"evaluation\": \"pass|fail\", \"feedback\": \"specific feedback\", \"issues\": []}",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review the transcript at $TRANSCRIPT_PATH. Check if ALL checkboxes in any edited markdown files are properly checked AND the criteria are actually met (not just superficially checked). Return {\"decision\": \"approve|block\", \"reason\": \"explanation\", \"unchecked_items\": []}",
+            "timeout": 45
+          }
+        ]
+      }
+    ]
+  }
+}

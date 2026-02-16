@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+# Path configured in conftest.py
 
 
 class TestModelSelectionModule:
@@ -19,7 +19,7 @@ class TestModelSelectionModule:
 
     def test_module_exists(self):
         """model_selection.py should exist."""
-        module_path = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib" / "model_selection.py"
+        module_path = PROJECT_ROOT / "hooks" / "autonomous-stan" / "lib" / "model_selection.py"
         assert module_path.exists(), f"Module not found: {module_path}"
 
     def test_module_importable(self):
@@ -207,7 +207,7 @@ class TestCreateCommandIntegration:
 
     def test_create_command_mentions_model_selection(self):
         """Create command should mention model selection."""
-        create_cmd = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        create_cmd = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = create_cmd.read_text()
 
         # Should mention model or auto-selection

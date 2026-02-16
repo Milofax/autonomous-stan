@@ -16,12 +16,12 @@ class TestCreateCommandExists:
 
     def test_create_command_exists(self):
         """Create command file should exist."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         assert cmd_file.exists(), f"Create command not found: {cmd_file}"
 
     def test_create_command_has_loop_section(self):
         """Create command should have execution loop section."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for loop-related content
@@ -30,7 +30,7 @@ class TestCreateCommandExists:
 
     def test_create_command_has_iteration_logic(self):
         """Create command should reference iteration counter."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for iteration-related content
@@ -39,7 +39,7 @@ class TestCreateCommandExists:
 
     def test_create_command_has_acceptance_criteria_check(self):
         """Create command should check acceptance criteria."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for acceptance criteria references
@@ -52,7 +52,7 @@ class TestLoopInstructions:
 
     def test_has_task_selection_logic(self):
         """Create command should have task selection logic (next ready task)."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention selecting/getting next task
@@ -66,7 +66,7 @@ class TestLoopInstructions:
 
     def test_has_success_path(self):
         """Create command should describe success path."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention success/completion
@@ -80,7 +80,7 @@ class TestLoopInstructions:
 
     def test_has_failure_path(self):
         """Create command should describe failure path."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention failure/error handling
@@ -94,7 +94,7 @@ class TestLoopInstructions:
 
     def test_has_perspective_shift_mention(self):
         """Create command should mention perspective shift at max iterations."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention perspective shift or similar
@@ -108,7 +108,7 @@ class TestLoopInstructions:
 
     def test_has_completion_signal(self):
         """Create command should have completion signal."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention completion signal
@@ -122,7 +122,7 @@ class TestIterationCounterIntegration:
     def test_session_state_has_iteration_functions(self):
         """Session state should have iteration counter functions."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -139,7 +139,7 @@ class TestIterationCounterIntegration:
     def test_iteration_counter_increments(self, tmp_path):
         """Iteration counter should increment correctly."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -171,7 +171,7 @@ class TestMaxIterationsCheck:
     def test_get_max_iterations_exists(self):
         """stan_gate should have get_max_iterations function."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         import importlib
         import stan_gate
@@ -183,7 +183,7 @@ class TestMaxIterationsCheck:
     def test_default_max_iterations_is_10(self):
         """Default max iterations should be 10 (like Ralph)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         import importlib
         import stan_gate

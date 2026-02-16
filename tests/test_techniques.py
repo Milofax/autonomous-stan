@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 # Add lib to path for techniques module
-LIB_DIR = Path(__file__).parent.parent / ".claude" / "hooks" / "stan" / "lib"
+LIB_DIR = Path(__file__).parent.parent / "hooks" / "autonomous-stan" / "lib"
 sys.path.insert(0, str(LIB_DIR))
 
 from techniques import (

@@ -1,0 +1,26 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "Edit",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "You are an INDEPENDENT EVALUATOR checking the edit that was just made.\n\nYour job is to evaluate:\n1. Were checkboxes changed from unchecked to checked?\n2. If so, is the criterion ACTUALLY met based on evidence in the file?\n3. Are there signs of 'superficial checking' (checking boxes without real implementation)?\n\nReturn JSON with this EXACT format:\n{\n  \"continue\": true,\n  \"systemMessage\": \"[EVALUATOR] Your feedback here explaining issues found or confirming criteria met\"\n}\n\nAlways set continue to true. Use systemMessage to provide feedback to the main agent.",
+          "timeout": 30
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "You are reviewing whether a task can be completed.\n\nReview the conversation. Look for:\n1. Any markdown files with acceptance criteria (checkboxes)\n2. Whether ALL checkboxes are checked\n3. Whether criteria are ACTUALLY satisfied (not just superficially checked)\n\nReturn JSON with this EXACT format:\n{\n  \"decision\": \"approve\" or \"block\",\n  \"reason\": \"Brief explanation\",\n  \"systemMessage\": \"[EVALUATOR] Detailed feedback for main agent\"\n}\n\nOnly approve if ALL criteria are genuinely met with evidence. Block if anything is incomplete or superficially done.",
+          "timeout": 45
+        }
+      ]
+    }
+  ]
+}

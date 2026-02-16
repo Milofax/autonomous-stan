@@ -1,5 +1,6 @@
 name: Code Quality
 description: Language-agnostic code quality checks. Use with language-specific extensions (code-quality-python, code-quality-typescript).
+evaluator_model: haiku  # Fast model for rule-based checks
 
 checks:
   - id: tests-exist

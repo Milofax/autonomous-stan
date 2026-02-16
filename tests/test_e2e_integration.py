@@ -22,7 +22,7 @@ import pytest
 
 # Add paths
 PROJECT_ROOT = Path(__file__).parent.parent
-HOOKS_LIB = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"
+HOOKS_LIB = PROJECT_ROOT / "hooks" / "autonomous-stan" / "lib"
 sys.path.insert(0, str(HOOKS_LIB))
 
 
@@ -31,17 +31,17 @@ class TestHooksExist:
 
     def test_stan_context_hook_exists(self):
         """stan_context.py existiert."""
-        hook = PROJECT_ROOT / ".claude/hooks/stan/user-prompt-submit/stan_context.py"
+        hook = PROJECT_ROOT / "hooks/autonomous-stan/stan_context.py"
         assert hook.exists(), f"Hook nicht gefunden: {hook}"
 
     def test_stan_track_hook_exists(self):
         """stan_track.py existiert."""
-        hook = PROJECT_ROOT / ".claude/hooks/stan/post-tool-use/stan_track.py"
+        hook = PROJECT_ROOT / "hooks/autonomous-stan/stan_track.py"
         assert hook.exists(), f"Hook nicht gefunden: {hook}"
 
     def test_stan_gate_hook_exists(self):
         """stan_gate.py existiert."""
-        hook = PROJECT_ROOT / ".claude/hooks/stan/pre-tool-use/stan_gate.py"
+        hook = PROJECT_ROOT / "hooks/autonomous-stan/stan_gate.py"
         assert hook.exists(), f"Hook nicht gefunden: {hook}"
 
 
@@ -62,7 +62,7 @@ class TestSkillsExist:
 
     def test_all_skills_exist(self):
         """Alle erforderlichen Skills existieren."""
-        skills_dir = PROJECT_ROOT / ".claude/commands/stan"
+        skills_dir = PROJECT_ROOT / "commands/autonomous-stan"
         for skill in self.REQUIRED_SKILLS:
             skill_path = skills_dir / skill
             assert skill_path.exists(), f"Skill nicht gefunden: {skill}"
@@ -173,7 +173,7 @@ class TestHookBehavior:
 
     def test_stan_context_outputs_valid_json(self):
         """stan_context gibt valides JSON zurück."""
-        hook_path = PROJECT_ROOT / ".claude/hooks/stan/user-prompt-submit/stan_context.py"
+        hook_path = PROJECT_ROOT / "hooks/autonomous-stan/stan_context.py"
 
         # Simuliere Hook-Input
         input_data = json.dumps({"userMessage": "test"})
@@ -193,7 +193,7 @@ class TestHookBehavior:
 
     def test_stan_gate_allows_non_commit(self):
         """stan_gate erlaubt Nicht-Commit Befehle."""
-        hook_path = PROJECT_ROOT / ".claude/hooks/stan/pre-tool-use/stan_gate.py"
+        hook_path = PROJECT_ROOT / "hooks/autonomous-stan/stan_gate.py"
 
         # Simuliere Nicht-Commit Befehl
         input_data = json.dumps({
@@ -214,7 +214,7 @@ class TestHookBehavior:
 
     def test_stan_track_outputs_valid_json(self):
         """stan_track gibt valides JSON zurück."""
-        hook_path = PROJECT_ROOT / ".claude/hooks/stan/post-tool-use/stan_track.py"
+        hook_path = PROJECT_ROOT / "hooks/autonomous-stan/stan_track.py"
 
         # Simuliere Tool-Output
         input_data = json.dumps({
@@ -286,7 +286,7 @@ class TestOverallStats:
 
     def test_total_skills_count(self):
         """Framework hat ausreichend Skills."""
-        skills_dir = PROJECT_ROOT / ".claude/commands/stan"
+        skills_dir = PROJECT_ROOT / "commands/autonomous-stan"
         skill_files = list(skills_dir.glob("*.md"))
         assert len(skill_files) >= 9, f"Nur {len(skill_files)} Skills gefunden"
 

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Analyze edit result for potential issues: Was the change complete? Are there syntax errors, missing logic, or superficially checked boxes? Provide specific feedback.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -7,8 +7,7 @@ from unittest.mock import patch, MagicMock
 import tempfile
 import pytest
 
-# Add lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent / ".claude/hooks/stan/lib"))
+# Path configured in conftest.py
 
 from task_schema import Task, save_tasks
 from task_sync import (

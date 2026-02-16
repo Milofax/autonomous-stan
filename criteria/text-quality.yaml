@@ -1,5 +1,6 @@
 name: Text Quality
 description: General quality criteria for any text (docs, PRDs, comments, UI copy).
+evaluator_model: sonnet  # Semantic understanding required
 
 checks:
   # Clarity & Structure

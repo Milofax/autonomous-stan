@@ -1,0 +1,29 @@
+{
+  "description": "WORKING EXAMPLE: PostToolUse Prompt-Hook as Evaluator",
+  "validated": "2026-01-24",
+  "note": "This hook was tested live and successfully caught superficially checked boxes and incomplete edits. Copy to .claude/settings.json (without 'hooks' wrapper) to activate.",
+
+  "example_for_settings_json": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Analyze edit result for potential issues: Was the change complete? Are there syntax errors, missing logic, or superficially checked boxes? Provide specific feedback.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+
+  "example_feedback_received": "PostToolUse:Edit hook stopped continuation: The checkbox was marked as complete without verification. The file contains no actual tests, and there is no evidence that 'all tests pass' - this appears to be a superficial checkbox completion.",
+
+  "learnings": [
+    "Prompt-hooks can detect semantically incorrect changes",
+    "systemMessage appears in transcript as feedback to main agent",
+    "Hook inherits session model (no separate model config)",
+    "Variables available: $TOOL_INPUT.file_path, $TOOL_INPUT.old_string, $TOOL_INPUT.new_string"
+  ]
+}

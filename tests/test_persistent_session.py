@@ -19,7 +19,7 @@ class TestSessionStorageLocation:
     def test_session_file_in_stan_directory(self, tmp_path):
         """Session file should be in .stan/ directory, not /tmp/."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -36,7 +36,7 @@ class TestSessionStorageLocation:
     def test_session_file_name(self, tmp_path):
         """Session file should be named session.json."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -54,7 +54,7 @@ class TestSessionPersistence:
     def test_session_survives_reload(self, tmp_path):
         """Session data should survive module reload (simulating new session)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -88,7 +88,7 @@ class TestStanDirectoryCreation:
     def test_creates_stan_directory_if_missing(self, tmp_path):
         """Should create .stan directory if it doesn't exist."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -111,7 +111,7 @@ class TestMigration:
     def test_migration_function_exists(self):
         """A migration function should exist."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -123,7 +123,7 @@ class TestMigration:
     def test_migrates_old_session_data(self, tmp_path):
         """Should migrate data from old /tmp/ location to .stan/."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import hashlib
         import importlib
@@ -185,7 +185,7 @@ class TestSessionStateInterface:
     def test_get_set_still_work(self, tmp_path):
         """Basic get/set should still work after change."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state
@@ -204,7 +204,7 @@ class TestSessionStateInterface:
     def test_iteration_functions_still_work(self, tmp_path):
         """Iteration counter functions should still work."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import session_state

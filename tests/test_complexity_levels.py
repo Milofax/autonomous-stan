@@ -16,13 +16,13 @@ class TestConfigHasComplexitySupport:
 
     def test_config_module_exists(self):
         """Config module should exist."""
-        config_file = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib" / "config.py"
+        config_file = PROJECT_ROOT / "hooks" / "autonomous-stan" / "lib" / "config.py"
         assert config_file.exists(), f"Config module not found: {config_file}"
 
     def test_config_has_complexity_levels(self):
         """Config should define complexity levels."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -35,7 +35,7 @@ class TestConfigHasComplexitySupport:
     def test_complexity_levels_are_0_to_4(self):
         """Complexity levels should be 0-4."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -51,7 +51,7 @@ class TestConfigHasComplexitySupport:
     def test_complexity_levels_have_names(self):
         """Each complexity level should have a name."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -68,7 +68,7 @@ class TestComplexityLevelFunctions:
     def test_get_complexity_exists(self):
         """get_project_complexity function should exist."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -80,7 +80,7 @@ class TestComplexityLevelFunctions:
     def test_set_complexity_exists(self):
         """set_project_complexity function should exist."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -92,7 +92,7 @@ class TestComplexityLevelFunctions:
     def test_default_complexity_is_2(self, tmp_path):
         """Default complexity should be 2 (standard)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -111,12 +111,12 @@ class TestInitCommandComplexity:
 
     def test_init_command_exists(self):
         """Init command should exist."""
-        init_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "init.md"
+        init_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "init.md"
         assert init_file.exists(), f"Init command not found: {init_file}"
 
     def test_init_command_mentions_complexity(self):
         """Init command should mention complexity."""
-        init_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "init.md"
+        init_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "init.md"
         content = init_file.read_text()
 
         assert "complexity" in content.lower(), \
@@ -129,7 +129,7 @@ class TestComplexityLevelDescriptions:
     def test_level_0_is_trivial(self):
         """Level 0 should be trivial (no planning)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -143,7 +143,7 @@ class TestComplexityLevelDescriptions:
     def test_level_1_is_minimal(self):
         """Level 1 should be minimal (bug fix)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -157,7 +157,7 @@ class TestComplexityLevelDescriptions:
     def test_level_2_is_standard(self):
         """Level 2 should be standard (feature)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -171,7 +171,7 @@ class TestComplexityLevelDescriptions:
     def test_level_3_is_detailed(self):
         """Level 3 should be detailed (complex feature)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config
@@ -185,7 +185,7 @@ class TestComplexityLevelDescriptions:
     def test_level_4_is_comprehensive(self):
         """Level 4 should be comprehensive (enterprise)."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import config

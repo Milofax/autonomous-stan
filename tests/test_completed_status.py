@@ -17,12 +17,12 @@ class TestValidStatusesIncludeCompleted:
 
     def test_document_module_exists(self):
         """Document module should exist."""
-        doc_file = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib" / "document.py"
+        doc_file = PROJECT_ROOT / "hooks" / "autonomous-stan" / "lib" / "document.py"
         assert doc_file.exists(), f"Document module not found: {doc_file}"
 
     def test_valid_statuses_has_completed(self):
         """VALID_STATUSES should include "completed"."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -33,7 +33,7 @@ class TestValidStatusesIncludeCompleted:
 
     def test_valid_statuses_no_archived(self):
         """VALID_STATUSES should NOT include "archived"."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -48,7 +48,7 @@ class TestTransitionsUseCompleted:
 
     def test_done_can_transition_to_completed(self):
         """done should transition to completed (not archived)."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -59,7 +59,7 @@ class TestTransitionsUseCompleted:
 
     def test_completed_can_transition_to_draft(self):
         """completed should be able to unarchive to draft."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -74,7 +74,7 @@ class TestManualTransitionsUseCompleted:
 
     def test_done_to_completed_is_manual(self):
         """done → completed should be a manual transition."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -85,7 +85,7 @@ class TestManualTransitionsUseCompleted:
 
     def test_completed_to_draft_is_manual(self):
         """completed → draft should be a manual transition."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document
@@ -121,7 +121,7 @@ class TestStatusInfoFunctions:
 
     def test_get_status_info_for_completed(self):
         """get_status_info should work for "completed" status."""
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"))
+        # Path configured in conftest.py
 
         import importlib
         import document

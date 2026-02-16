@@ -2,6 +2,12 @@
 
 Autonomes Workflow-Framework mit modularen Denkwerkzeugen für Claude Code.
 
+## Language Rules
+
+- **Conversation:** German with the user
+- **All files:** English (documentation, config, code, comments, commit messages)
+- **Plugin name:** Always "autonomous-stan" (not "stan" alone)
+
 ## Verpflichtend
 
 1. **Plan lesen:** [docs/plan.md](docs/plan.md)
@@ -59,3 +65,39 @@ Bei Session-Start in diesem Projekt:
 ### Changelog-Quelle
 
 GitHub: `gh api repos/anthropics/claude-code/contents/CHANGELOG.md`
+
+## Hook-Architektur (Validiert 2026-01-25)
+
+### Erkenntnisse
+
+| Hook-Typ | Datei-Zugriff | Subagent spawnen |
+|----------|---------------|------------------|
+| `type: prompt` | ❌ Nein ($TRANSCRIPT_PATH ist nur String) | ❌ Nein |
+| `type: command` | ✅ Ja (via stdin JSON) | ❌ Nein (kann nur systemMessage) |
+
+### Lösung: Command-Hook + Subagent via Task Tool
+
+```
+Hook (PostToolUse) → Liest Criteria → systemMessage
+                                           ↓
+Hauptagent → Task(model="haiku", prompt="Evaluiere...") → Subagent
+                                                              ↓
+                                                     PASS / FAIL / WARN
+```
+
+**Vorteile:**
+- Kein API-Token nötig (nutzt Subscription)
+- Subagent hat separaten Kontext (nicht "committed" zum Edit)
+- Unabhängige Evaluation erkennt Self-Serving Bias
+
+### Dateistruktur (analog taming-stan)
+
+```
+scripts/
+├── prompts/*.md          # Evaluator-Prompts als Markdown
+├── lib/                  # Shared Code
+└── *.py                  # Hook-Scripts
+
+hooks/
+└── hooks.json            # Config mit ${CLAUDE_PLUGIN_ROOT}
+```

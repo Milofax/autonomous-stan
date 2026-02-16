@@ -17,8 +17,7 @@ from pathlib import Path
 
 import pytest
 
-# Add lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent / ".claude" / "hooks" / "stan" / "lib"))
+# Path configured in conftest.py
 
 from document import (
     VALID_STATUSES,

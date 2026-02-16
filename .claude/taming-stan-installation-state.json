@@ -1,11 +1,13 @@
 {
   "installed_services": [
-    "agent-browser",
+    "git-workflow-github-flow",
+    "playwright",
     "firecrawl",
     "context7"
   ],
   "hook_commands": [
-    "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
+    "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/git-workflow-guard.py",
+    "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/playwright-guard.py"
   ],
-  "installed_at": "2026-01-21T17:00:58.482Z"
+  "installed_at": "2026-01-26T15:15:34.603Z"
 }

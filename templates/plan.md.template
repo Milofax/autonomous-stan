@@ -4,10 +4,7 @@ status: draft
 created: {{date}}
 updated: {{date}}
 criteria:
-  - task-is-actionable
-  - task-dependencies-complete
-  - acceptance-criteria-clear
-  - task-fits-iteration
+  - text-quality
 ---
 
 # Implementation Plan: {{title}}
@@ -17,55 +14,48 @@ criteria:
 Brief summary of the plan.
 
 **PRD:** [docs/prd.md](prd.md)
-**Estimated Tasks:** {{task_count}}
 
-## Tasks
+## Task Overview
 
-### T-001: {{task_title}}
+> **IMPORTANT:** Tasks are managed in `.stan/tasks.jsonl`, NOT in this file.
+> This section is for high-level planning only. See `docs/tasks.md` for generated task list.
 
-**Description:** What will be done?
+### Example Task (for reference only)
 
-**Dependencies:** None | T-XXX
+```json
+{
+  "id": "t-xxxx",
+  "subject": "Implement feature X",
+  "description": "Detailed description...",
+  "status": "pending",
+  "phase": "create",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Tests pass {code-quality}",
+    "User finds it intuitive"
+  ]
+}
+```
 
-**Files:**
-- `path/to/file1`
-- `path/to/file2`
-
-**Acceptance Criteria:**
-- [ ] Criterion 1
-- [ ] Criterion 2
-
----
-
-### T-002: {{task_title}}
-
-**Description:** What will be done?
-
-**Dependencies:** T-001
-
-**Files:**
-- `path/to/file`
-
-**Acceptance Criteria:**
-- [ ] Criterion 1
-
----
+**Acceptance Criteria Syntax:**
+- `"Text {criteria-name}"` → Acceptance Criteria (loads YAML)
+- `"Free text"` → Success Criteria (semantic, Sonnet)
 
 ## Dependency Graph
 
 ```
-T-001 ──> T-002 ──> T-003
-              │
-              └──> T-004
+t-xxx1 ──> t-xxx2 ──> t-xxx3
+               │
+               └──> t-xxx4
 ```
 
 ## Parallelization
 
-| Can Run in Parallel | Sequential |
-|--------------------|------------|
-| T-001, T-002 | T-003 after T-001 |
+Tasks without file overlaps can run in parallel.
+Main agent orchestrates via Git Worktrees + Subagents.
 
 ## Risks
 
-- Risk 1: Mitigation
-- Risk 2: Mitigation
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| {{risk_1}} | low/medium/high | low/medium/high | {{mitigation}} |

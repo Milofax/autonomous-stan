@@ -33,19 +33,19 @@ class TestStanGateMaxIterations:
 
     def test_gate_exists(self):
         """Gate hook must exist."""
-        gate = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use" / "stan_gate.py"
+        gate = PROJECT_ROOT / "hooks" / "autonomous-stan" / "stan_gate.py"
         assert gate.exists(), f"Gate hook not found: {gate}"
 
     def test_gate_has_default_constant(self):
         """Gate should have DEFAULT_MAX_ITERATIONS constant."""
-        gate = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use" / "stan_gate.py"
+        gate = PROJECT_ROOT / "hooks" / "autonomous-stan" / "stan_gate.py"
         content = gate.read_text()
         assert "DEFAULT_MAX_ITERATIONS" in content, \
             "Gate should have DEFAULT_MAX_ITERATIONS constant"
 
     def test_gate_default_is_10(self):
         """Default max_iterations should be 10 (like Ralph)."""
-        gate = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use" / "stan_gate.py"
+        gate = PROJECT_ROOT / "hooks" / "autonomous-stan" / "stan_gate.py"
         content = gate.read_text()
         # Should have DEFAULT_MAX_ITERATIONS = 10
         match = re.search(r'DEFAULT_MAX_ITERATIONS\s*=\s*(\d+)', content)
@@ -55,7 +55,7 @@ class TestStanGateMaxIterations:
 
     def test_gate_has_get_max_iterations_function(self):
         """Gate should have function to get max_iterations from manifest."""
-        gate = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use" / "stan_gate.py"
+        gate = PROJECT_ROOT / "hooks" / "autonomous-stan" / "stan_gate.py"
         content = gate.read_text()
         assert "def get_max_iterations" in content, \
             "Gate should have get_max_iterations function"
@@ -67,7 +67,7 @@ class TestMaxIterationsLogic:
     def test_get_max_iterations_returns_default_without_manifest(self):
         """Without manifest, should return default 10."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         # Mock: no manifest
         from unittest.mock import patch
@@ -80,7 +80,7 @@ class TestMaxIterationsLogic:
     def test_get_max_iterations_returns_default_without_field(self, tmp_path):
         """With manifest but no max_iterations field, should return default 10."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         from unittest.mock import patch
         import stan_gate
@@ -101,7 +101,7 @@ status: draft
     def test_get_max_iterations_reads_from_manifest(self, tmp_path):
         """With max_iterations in manifest, should return that value."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         from unittest.mock import patch
         import stan_gate
@@ -127,7 +127,7 @@ max_iterations: 15
     def test_get_max_iterations_handles_invalid_value(self, tmp_path):
         """With invalid max_iterations, should fall back to default."""
         import sys
-        sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks" / "stan" / "pre-tool-use"))
+        sys.path.insert(0, str(PROJECT_ROOT / "hooks" / "autonomous-stan"))
 
         from unittest.mock import patch
         import stan_gate

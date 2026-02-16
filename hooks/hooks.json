@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-hooks.json",
+  "description": "autonomous-stan workflow hooks: context injection, test tracking, phase enforcement, criteria evaluation",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-context.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-gate.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-track.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

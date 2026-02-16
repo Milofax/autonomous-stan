@@ -40,6 +40,399 @@
 
 ---
 
+## Entity Model
+
+### Übersicht aller Entitäten
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           STAN ENTITY MODEL                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  DOKUMENTE & VORLAGEN                    QUALITÄTSSICHERUNG              │
+│  ════════════════════                    ══════════════════              │
+│                                                                          │
+│  Template ──1:n──> Document              Criteria ──1:n──> Check         │
+│  (templates/)      (docs/)               (criteria/)                     │
+│       │                │                      ▲                          │
+│       │                │                      │                          │
+│       └── criteria ────┴──────────────────────┘                          │
+│           (frontmatter)                                                  │
+│                                                                          │
+│  PROJEKT-STATUS                          AUFGABEN                        │
+│  ══════════════                          ════════                        │
+│                                                                          │
+│  stan.md ◄─────────────────────────────► Task                           │
+│  (Manifest)    phase, current_task       (.stan/tasks.jsonl)            │
+│                                               │                          │
+│                                               ├── acceptance_criteria    │
+│                                               │   ├── {criteria-name}    │
+│                                               │   └── "free text"        │
+│                                               │        (Success Criteria)│
+│                                               └── dependencies           │
+│                                                                          │
+│  DENKMETHODEN                                                            │
+│  ════════════                                                            │
+│                                                                          │
+│  Purpose ──n:m──> Technique                                              │
+│  (purposes/)      (techniques/)                                          │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Entitäten im Detail
+
+| Entität | Pfad | Beschreibung | Format |
+|---------|------|--------------|--------|
+| **Template** | `templates/*.template` | Vorlage für Dokumente | Markdown + YAML Frontmatter |
+| **Document** | `docs/*.md` | Erstelltes Dokument (PRD, Plan) | Markdown + YAML Frontmatter |
+| **stan.md** | `stan.md` (Root) | Projekt-Manifest mit Status | Markdown + YAML Frontmatter |
+| **Task** | `.stan/tasks.jsonl` | Arbeitseinheit | JSONL (1 Zeile = 1 Task) |
+| **Criteria** | `criteria/*.yaml` | Qualitätsprüfungen | YAML |
+| **Check** | (Teil von Criteria) | Einzelner Prüfpunkt | YAML (in Criteria) |
+| **Purpose** | `techniques/purposes/*.yaml` | Einstiegspunkt für Denkmethoden | YAML |
+| **Technique** | `techniques/*.yaml` | Konkrete Denkmethode | YAML |
+
+### Beziehungen
+
+#### Template → Document (1:n)
+
+```
+Template                          Document
+═════════                         ════════
+templates/prd.md.template   ──>   docs/prd.md
+templates/plan.md.template  ──>   docs/plan.md (nur Referenz)
+templates/stan.md.template  ──>   stan.md
+```
+
+**Hinweis:** `docs/plan.md` wird nicht aus Template generiert, sondern ist dieses Dokument.
+Tasks kommen aus `.stan/tasks.jsonl`, nicht aus dem Plan-Template.
+
+#### Document/Task → Criteria (n:m)
+
+**Zwei Ebenen der Criteria-Referenzierung:**
+
+| Ebene | Wo | Syntax | Prüft |
+|-------|-----|--------|-------|
+| **Document-level** | Frontmatter | `criteria: [goal-is-smart]` | Dokument als Ganzes |
+| **Task-level** | acceptance_criteria | `"Text {code-quality}"` | Einzelne Implementierung |
+
+```yaml
+# Document-level (prd.md Frontmatter)
+---
+criteria:
+  - goal-is-smart      # Wird gegen das PRD geprüft
+  - text-quality       # Wird gegen das PRD geprüft
+---
+
+# Task-level (.stan/tasks.jsonl)
+{
+  "acceptance_criteria": [
+    "Tests pass {code-quality}",     # → Criteria YAML laden
+    "User finds UI intuitive"        # → Success Criteria (Sonnet)
+  ]
+}
+```
+
+#### Criteria → Check (1:n)
+
+```yaml
+# criteria/code-quality.yaml
+name: Code Quality
+evaluator_model: haiku
+checks:                           # 1 Criteria hat n Checks
+  - id: tests-pass
+    question: "Do all tests pass?"
+    required: true
+  - id: lint-pass
+    question: "Does code pass linting?"
+    required: true
+```
+
+#### Task Acceptance Criteria: Zwei Typen
+
+| Typ | Syntax | Beispiel | Evaluator |
+|-----|--------|----------|-----------|
+| **Acceptance Criteria** | `{criteria-name}` | `"Lint OK {code-quality}"` | Model aus YAML |
+| **Success Criteria** | Freier Text | `"User finds UI beautiful"` | Immer Sonnet |
+
+#### Purpose ↔ Technique (n:m)
+
+```yaml
+# techniques/five-whys.yaml
+purposes:                         # Technique gehört zu Purposes
+  - root-cause-analysis
+  - self-reflection
+
+# techniques/purposes/root-cause-analysis.yaml
+techniques:                       # Purpose empfiehlt Techniques
+  - five-whys
+  - fishbone-diagram
+```
+
+### Widersprüche aufgelöst
+
+| Problem | Auflösung |
+|---------|-----------|
+| **Template zeigt Markdown-Tasks** | Template ist nur Referenz. Tasks kommen aus JSONL. Template aktualisieren. |
+| **stan.md "Current Task"** | Wird dynamisch aus JSONL gelesen (erster `in_progress` Task) |
+| **Document-level vs Task-level Criteria** | Beide valid! Document-level = Dokument-Qualität, Task-level = Implementierungs-Qualität |
+| **Acceptance Criteria Format** | In JSONL: Strings. `{criteria-name}` Syntax für YAML-Referenz. |
+
+### Dateisystem-Struktur
+
+```
+project/
+├── stan.md                      # Manifest (Phase, Status)
+├── docs/
+│   ├── prd.md                   # Document (aus Template)
+│   └── tasks.md                 # GENERATED from JSONL (read-only!)
+├── .stan/
+│   └── tasks.jsonl              # SOURCE OF TRUTH für Tasks
+├── criteria/
+│   ├── code-quality.yaml        # Criteria mit Checks
+│   └── text-quality.yaml
+└── techniques/
+    ├── five-whys.yaml           # Technique
+    └── purposes/
+        └── root-cause-analysis.yaml  # Purpose
+```
+
+---
+
+## Entity Syntax Specifications
+
+### Template Syntax
+
+**Datei:** `templates/*.template`
+
+```markdown
+---
+type: prd|plan|manifest           # REQUIRED: Dokumenttyp
+status: draft                     # Initial status
+created: {{date}}                 # Placeholder, wird ersetzt
+updated: {{date}}
+criteria:                         # Document-level Criteria
+  - goal-is-smart
+  - text-quality
+---
+
+# {{title}}
+
+Markdown content with {{placeholders}}...
+```
+
+| Feld | Typ | Required | Beschreibung |
+|------|-----|----------|--------------|
+| `type` | string | ✓ | `prd`, `plan`, `manifest` |
+| `status` | string | ✓ | `draft`, `in_review`, `approved` |
+| `criteria` | list | ✗ | Criteria-Namen für Document-level Prüfung |
+| `{{placeholder}}` | - | - | Wird bei Erstellung ersetzt |
+
+### Document Syntax
+
+**Datei:** `docs/*.md`, `stan.md`
+
+Identisch zu Template, aber mit ausgefüllten Werten:
+
+```markdown
+---
+type: prd
+status: approved
+created: 2026-01-25
+updated: 2026-01-25
+criteria:
+  - goal-is-smart
+  - text-quality
+---
+
+# My Feature PRD
+
+Actual content...
+```
+
+### Task Syntax (JSONL)
+
+**Datei:** `.stan/tasks.jsonl` (Source of Truth)
+
+```json
+{
+  "id": "t-a1b2",
+  "subject": "Implement login form",
+  "description": "Create login form with email/password fields",
+  "status": "pending",
+  "phase": "create",
+  "dependencies": ["t-x9y8"],
+  "acceptance_criteria": [
+    "Tests pass {code-quality}",
+    "Form validates input {code-quality}",
+    "User finds flow intuitive"
+  ],
+  "owner": null,
+  "created_at": "2026-01-25T10:00:00Z",
+  "updated_at": "2026-01-25T10:00:00Z"
+}
+```
+
+| Feld | Typ | Required | Beschreibung |
+|------|-----|----------|--------------|
+| `id` | string | ✓ | Hash-ID mit Prefix `t-` |
+| `subject` | string | ✓ | Kurztitel |
+| `description` | string | ✗ | Detaillierte Beschreibung |
+| `status` | enum | ✓ | `pending`, `in_progress`, `done`, `blocked` |
+| `phase` | enum | ✓ | `define`, `plan`, `create` |
+| `dependencies` | list | ✗ | Task-IDs die vorher done sein müssen |
+| `acceptance_criteria` | list | ✗ | Strings, optional mit `{criteria-name}` |
+| `owner` | string | ✗ | Agent-Name bei Multi-Agent |
+| `created_at` | ISO8601 | ✓ | Erstellungszeitpunkt |
+| `updated_at` | ISO8601 | ✓ | Letzte Änderung |
+
+**Acceptance Criteria Syntax:**
+
+```
+"Beschreibender Text {criteria-name}"   → Acceptance Criteria (YAML)
+"Freier beschreibender Text"            → Success Criteria (Sonnet)
+```
+
+### Criteria Syntax (YAML)
+
+**Datei:** `criteria/*.yaml`
+
+```yaml
+name: Code Quality                      # REQUIRED: Display name
+description: Code quality checks        # Optional description
+evaluator_model: haiku                  # haiku | sonnet | opus
+
+checks:
+  - id: tests-pass                      # REQUIRED: Unique ID
+    question: "Do all tests pass?"      # REQUIRED: Evaluation question
+    required: true                      # Default: true
+    auto: true                          # Optional: Can be automated?
+    commands:                           # Optional: Auto-check commands
+      - pattern: "package.json"
+        command: "npm test"
+      - pattern: "pytest.ini"
+        command: "pytest"
+
+  - id: lint-pass
+    question: "Does code pass linting?"
+    required: true
+```
+
+| Feld | Typ | Required | Beschreibung |
+|------|-----|----------|--------------|
+| `name` | string | ✓ | Anzeigename |
+| `description` | string | ✗ | Beschreibung |
+| `evaluator_model` | enum | ✗ | `haiku` (default), `sonnet`, `opus` |
+| `checks` | list | ✓ | Liste von Check-Objekten |
+| `checks[].id` | string | ✓ | Eindeutige ID innerhalb Criteria |
+| `checks[].question` | string | ✓ | Frage für Evaluator |
+| `checks[].required` | bool | ✗ | Muss erfüllt sein? (default: true) |
+| `checks[].auto` | bool | ✗ | Automatisierbar? |
+| `checks[].commands` | list | ✗ | Commands für Auto-Check |
+
+### Purpose Syntax (YAML)
+
+**Datei:** `techniques/purposes/*.yaml`
+
+```yaml
+id: root-cause-analysis                 # REQUIRED: Unique ID
+name: "Root Cause Analysis"             # REQUIRED: Display name
+question: "Why did this happen?"        # REQUIRED: Trigger question
+
+description: |                          # Optional: Longer description
+  Techniques for systematically identifying
+  the actual cause of a problem.
+
+techniques:                             # REQUIRED: Recommended techniques
+  - five-whys                           # Primary recommendation
+  - fishbone-diagram
+  - after-action-review
+
+triggers:                               # Optional: When to suggest
+  - "Error occurs repeatedly"
+  - "Bug found, but why?"
+
+recommended_start: five-whys            # Optional: Default technique
+recommended_start_reason: "Quick, needs no tools"
+
+escalation: |                           # Optional: When to switch
+  If Five Whys doesn't work, try Fishbone.
+```
+
+| Feld | Typ | Required | Beschreibung |
+|------|-----|----------|--------------|
+| `id` | string | ✓ | Eindeutige ID |
+| `name` | string | ✓ | Anzeigename |
+| `question` | string | ✓ | Kernfrage des Purpose |
+| `techniques` | list | ✓ | Empfohlene Techniques |
+| `triggers` | list | ✗ | Wann diesen Purpose vorschlagen |
+| `recommended_start` | string | ✗ | Standard-Technique |
+
+### Technique Syntax (YAML)
+
+**Datei:** `techniques/*.yaml`
+
+```yaml
+id: five-whys                           # REQUIRED: Unique ID
+name: "Five Whys"                       # REQUIRED: Display name
+description: "Get to root cause"        # REQUIRED: Short description
+
+steps:                                  # REQUIRED: How to apply
+  - "Formulate problem clearly"
+  - "Ask: 'Why did this happen?'"
+  - "Take answer as new statement"
+  - "Repeat until root cause (typically 5x)"
+
+purposes:                               # REQUIRED: Which purposes use this
+  - root-cause-analysis
+  - self-reflection
+
+aliases:                                # Optional: Alternative names
+  - "5 Whys"
+  - "Why-Why Analysis"
+
+source: "Toyota Production System"      # Optional: Origin
+duration: "5-15 min"                    # Optional: Time estimate
+participants: "Solo or team"            # Optional: Who
+
+examples:                               # Optional: Usage examples
+  - situation: "Bug in code"
+    application: |
+      1. Why crash? → Null pointer
+      2. Why null? → Not initialized
+      ...
+
+when_to_use:                            # Optional: Good scenarios
+  - "Problem occurs repeatedly"
+
+when_not:                               # Optional: Bad scenarios
+  - "Complex multi-cause systems"
+
+tips:                                   # Optional: Pro tips
+  - "Don't stop at exactly 5"
+
+related:                                # Optional: Related techniques
+  - fishbone-diagram
+
+tags:                                   # Optional: Categorization
+  - analysis
+  - debugging
+```
+
+| Feld | Typ | Required | Beschreibung |
+|------|-----|----------|--------------|
+| `id` | string | ✓ | Eindeutige ID |
+| `name` | string | ✓ | Anzeigename |
+| `description` | string | ✓ | Kurzbeschreibung |
+| `steps` | list | ✓ | Schritte zur Anwendung |
+| `purposes` | list | ✓ | Zu welchen Purposes gehört diese Technique |
+| `examples` | list | ✗ | Anwendungsbeispiele |
+| `when_to_use` | list | ✗ | Wann nutzen |
+| `when_not` | list | ✗ | Wann nicht nutzen |
+
+---
+
 ## Phasen-Modell
 
 ```
@@ -984,55 +1377,67 @@ Phase → CREATE (Fortsetzung)
 
 ---
 
-## Dateistruktur (Ziel: ~25 Dateien)
+## File Structure (Plugin Format)
 
 ```
 autonomous-stan/
-├── .claude/
-│   ├── hooks/
-│   │   ├── stan-context.py     # UserPromptSubmit
-│   │   ├── stan-track.py       # PostToolUse (Bash)
-│   │   └── stan-gate.py        # PreToolUse
-│   ├── skills/
-│   │   └── stan/SKILL.md       # /stan Skill
-│   └── rules/
-│       └── taming-stan/        # Bestehende Regeln (Symlink)
+├── .claude-plugin/
+│   └── plugin.json              # Plugin manifest
 │
-├── criteria/
-│   ├── code/
-│   │   ├── tests.yaml
-│   │   ├── typecheck.yaml
-│   │   ├── lint.yaml
-│   │   └── build.yaml
-│   ├── text/
-│   │   ├── spelling.yaml
-│   │   └── tone.yaml
-│   ├── design/
-│   │   ├── responsive.yaml
-│   │   └── a11y.yaml
-│   └── strategy/
-│       └── logic.yaml
+├── commands/
+│   └── autonomous-stan/         # Slash commands (/stan ...)
+│       ├── init.md
+│       ├── define.md
+│       ├── plan.md
+│       ├── create.md
+│       └── ...
+│
+├── hooks/
+│   ├── hooks.json               # Hook configuration
+│   └── autonomous-stan/
+│       ├── stan_context.py      # UserPromptSubmit
+│       ├── stan_track.py        # PostToolUse (Bash)
+│       ├── stan_gate.py         # PreToolUse
+│       └── lib/                 # Shared Python modules
+│           ├── document.py
+│           ├── learnings.py
+│           ├── session_state.py
+│           ├── task_schema.py
+│           ├── task_generator.py
+│           └── techniques.py
+│
+├── criteria/                    # Quality criteria (flat, with prefixes)
+│   ├── code-quality.yaml
+│   ├── text-quality.yaml
+│   ├── goal-is-smart.yaml
+│   └── ...
 │
 ├── templates/
 │   ├── stan.md.template
 │   ├── prd.md.template
-│   └── plan.md.template
+│   ├── plan.md.template
+│   └── plugin-claude.md.template
+│
+├── techniques/                  # Thinking techniques
+│   ├── *.yaml                   # 21+ techniques
+│   ├── purposes/                # 9 entry points
+│   └── schema.yaml
 │
 ├── docs/
-│   └── README.md
+│   ├── plan.md                  # This file
+│   └── tasks.md                 # Generated from .stan/tasks.jsonl
 │
-└── vendor/                     # Referenz-Frameworks (Submodules)
+└── vendor/                      # Reference frameworks (submodules)
     ├── BMAD-METHOD/
     ├── ralph/
-    ├── PRPs-agentic-eng/
     └── claude-agent-sdk/
 
-# Zusätzlich: Globales Learnings-Verzeichnis (User Home)
+# Global learnings directory (user home)
 ~/.stan/
 └── learnings/
-    ├── recent.json             # Rolling ~50, FIFO
-    ├── hot.json                # Oft genutzt, weighted
-    └── archive.json            # Permanent, komprimiert
+    ├── recent.json              # Rolling ~50, FIFO
+    ├── hot.json                 # Frequently used, promoted
+    └── archive.json             # Permanent, compressed
 ```
 
 ---
@@ -1078,98 +1483,38 @@ autonomous-stan/
     - 357 Tests grün
 16. · Test-Projekt für Hook-Aktivierung (separates Projekt)
 
-### Phase 13: Hybrid + Gap-Analysis Items
-17. · Project Complexity Levels (0-4) - BMAD-Style Planungstiefe pro Projekt
-18. · `/stan archive` Command - Altes PRD/Plan archivieren
-19. · Max Iterations in stan.md konfigurierbar
-20. · STAN Skill erstellen (Hybrid Commands + Skills)
+### Phase 13: Gap-Analysis Items ✓
+17. ✓ Project Complexity Levels (0-4) - in config.py implementiert
+18. ✓ Max Iterations konfigurierbar (in session_state.py)
+19. ~ `/stan archive` - Redundant, `/stan complete` archiviert bereits
 
-### Phase 14: Claude Tasks Integration
-21. · Claude Tasks Adapter in `/stan create` - STAN Tasks → Claude Tasks konvertieren
-22. · Bidirektionale Sync - Claude Task completed → STAN Task ✓
-23. · Multi-Agent Owner-Zuweisung bei Parallelisierung
-24. · Session-Resume Sync - Claude Tasks State mit STAN Tasks abgleichen
+### Phase 14: Version-Tracking & Auto-Updates ✓
+20. ✓ CLAUDE.md erweitern mit Version-Tracking Sektion
 
-### Phase 15: Version-Tracking & Auto-Updates
-25. ✓ CLAUDE.md erweitern mit Version-Tracking Sektion
+### Phase 15: Autonomie-Features ✓
+21. ✓ Loop-Logik in `/stan create` (autonome Execution-Loop)
+22. ✓ Persistent Session State (`.stan/session.json`)
+23. ✓ Model Auto-Selection (complexity-basiert + Escalation)
 
-### Phase 16: Autonomie-Features
-26. · Loop-Logik in `/stan create` (autonome Execution-Loop)
-27. · Persistent Session State (`.stan/session.json`)
-28. · Model Auto-Selection (complexity-basiert + Escalation)
+### Phase 16: Terminology Cleanup ✓
+24. ✓ Rename "archived" to "completed"
 
----
-
-## Detaillierte Task-Spezifikationen (für docs/tasks.md)
-
-### T-037: Claude Tasks Adapter in `/stan create`
-
-**Beschreibung:** Bei Start von `/stan create` werden STAN Tasks aus docs/tasks.md in Claude Tasks konvertiert.
-
-**Dependencies:** T-032 (Test-Projekt)
-
-**Dateien:**
-- `.claude/commands/stan/create.md` (erweitern)
-- `.claude/hooks/stan/lib/claude_tasks_adapter.py` (NEU)
-
-**Acceptance Criteria:**
-- [ ] Liest `ready` Tasks aus docs/tasks.md
-- [ ] Erstellt Claude Tasks via TaskCreate für jeden Task
-- [ ] Mapped Dependencies zu blockedBy
-- [ ] Setzt activeForm aus Task-Name
+### Phase 17: JSONL Task System ✓
+25. ✓ JSONL Schema + Validator (T-047)
+26. ✓ .stan/ Directory Structure (T-048)
+27. ✓ Markdown Generator JSONL → docs/tasks.md (T-049)
+28. ✓ Sync Layer: JSONL ↔ Claude Tasks (T-050, T-051)
+29. ✓ /stan ready Skill (T-052)
+30. ✓ /stan complete Skill - Land the Plane (T-053)
+31. ✓ /stan plan + /stan create Integration (T-054)
+32. ✓ E2E Integration Test (T-055)
 
 ---
 
-### T-038: Bidirektionale Sync (Claude ↔ STAN Tasks)
+## Detaillierte Task-Spezifikationen
 
-**Beschreibung:** Wenn Claude Task completed → STAN Task in docs/tasks.md aktualisieren.
-
-**Dependencies:** T-037
-
-**Dateien:**
-- `.claude/hooks/stan/lib/claude_tasks_adapter.py`
-- `.claude/hooks/stan/post-tool-use/stan_track.py` (erweitern)
-
-**Acceptance Criteria:**
-- [ ] Erkennt TaskUpdate mit status: completed
-- [ ] Updated docs/tasks.md: `·` → `✓`
-- [ ] Prüft Acceptance Criteria (nur STAN-seitig)
-
----
-
-### T-039: Multi-Agent Owner-Zuweisung
-
-**Beschreibung:** Bei Parallelisierung werden Claude Tasks mit owner-Feld für Subagents versehen.
-
-**Dependencies:** T-037
-
-**Dateien:**
-- `.claude/commands/stan/create.md`
-- `.claude/hooks/stan/lib/claude_tasks_adapter.py`
-
-**Acceptance Criteria:**
-- [ ] Erkennt parallele Tasks (keine gemeinsamen Dateien)
-- [ ] Setzt owner bei Task-Zuweisung an Subagent
-- [ ] Koordination via Claude Tasks Dependencies
-
----
-
-### T-040: Session-Resume Sync
-
-**Beschreibung:** Bei Session-Resume werden Claude Tasks mit STAN Tasks abgeglichen.
-
-**Dependencies:** T-038
-
-**Dateien:**
-- `.claude/hooks/stan/user-prompt-submit/stan_context.py` (erweitern)
-
-**Acceptance Criteria:**
-- [ ] Prüft bei Session-Start ob Claude Tasks existieren
-- [ ] Vergleicht Status mit docs/tasks.md
-- [ ] Meldet Diskrepanzen
-- [ ] Synchronisiert bei Bedarf
-
----
+> **Hinweis:** T-037 bis T-040 wurden durch Phase 17 (JSONL Task System) ersetzt.
+> Die Implementierung erfolgte in `task_schema.py`, `task_sync.py`, `task_generator.py`.
 
 ### T-041: CLAUDE.md Version-Tracking
 
@@ -1320,77 +1665,112 @@ Welche archivieren? (alle / auswählen / abbrechen)
 
 ---
 
-## Claude Tasks Integration (Hybrid-Ansatz)
+## JSONL Task System + Claude Tasks Integration
 
-**Entscheidung:** Claude Tasks (v2.1.16+) als Runtime-Layer nutzen, STAN Tasks als Planning-Layer behalten.
+> **Entscheidung (2026-01-24):** JSONL als Source of Truth statt Markdown.
+> Markdown wird generiert (read-only). Claude Tasks für Runtime-Koordination.
+> Inspiriert von beads (vendor/beads/).
 
-### Zwei-Schichten-Architektur
+### Drei-Schichten-Architektur
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  STAN Tasks (docs/tasks.md)                                 │
-│  ═══════════════════════════                                │
-│  Planning & Documentation                                   │
-│  • Acceptance Criteria (Checkboxen)                         │
-│  • Task-Typen (auto, manual, review, gate)                  │
-│  • Phasen-Organisation                                      │
-│  • Datei-Referenzen                                         │
-│  • Iteration-Limits                                         │
-│  • Git-tracked (Source of Truth)                            │
+│  .stan/tasks.jsonl (Source of Truth)                        │
+│  ════════════════════════════════════                       │
+│  • Hash-basierte IDs (t-a1b2) - kollisionsfrei              │
+│  • Ein Task pro Zeile (JSONL)                               │
+│  • Git-tracked, merge-freundlich                            │
+│  • Alle Felder: acceptance_criteria, dependencies, owner    │
+├─────────────────────────────────────────────────────────────┤
+│  docs/tasks.md (Generated - READ ONLY)                      │
+│  ═══════════════════════════════════════                    │
+│  • Human-readable Markdown                                  │
+│  • Auto-generiert nach jeder JSONL-Änderung                 │
+│  • Gruppiert nach Phase                                     │
+│  • Status-Symbole (·, ►, ✓, §)                              │
 ├─────────────────────────────────────────────────────────────┤
 │  Claude Tasks (Runtime)                                     │
 │  ═══════════════════════                                    │
-│  Execution & Coordination                                   │
 │  • Session-übergreifender State                             │
 │  • Subagent-Owner (Multi-Agent)                             │
-│  • Real-time Status                                         │
-│  • Native Dependency Blocking                               │
+│  • Native Dependency Blocking (blockedBy)                   │
 │  • Spinner Feedback (activeForm)                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Synchronisation
 
-**Bei `/stan create` Start:**
-1. Lese STAN Tasks aus `docs/tasks.md`
-2. Erstelle Claude Tasks für jeden `ready` Task
-3. Setze Dependencies (blockedBy) aus STAN Dependencies
-4. Setze `owner` bei Parallelisierung
+**Session-Start (/stan create):**
+```
+.stan/tasks.jsonl → Claude Tasks
+- Für jeden pending/in_progress Task: TaskCreate
+- dependencies → blockedBy
+- owner aus JSONL übernehmen
+```
 
-**Bei Task-Abschluss:**
-1. Update Claude Task → `completed`
-2. Update STAN Task → `✓` in `docs/tasks.md`
-3. Prüfe Acceptance Criteria (nur in STAN)
+**Runtime (Task-Abschluss):**
+```
+Claude Tasks → .stan/tasks.jsonl → docs/tasks.md
+- TaskUpdate (completed) → JSONL aktualisieren
+- Markdown regenerieren
+- Git-tracked bleibt aktuell
+```
 
-**Bei Session-Wechsel:**
-1. Claude Tasks bleiben erhalten (session-übergreifend)
-2. STAN Tasks in Git (persistent)
-3. Bei Resume: Sync State
+**Session-Ende (/stan complete):**
+```
+1. Alle Tasks done?
+2. Alle Criteria erfüllt?
+3. Tests grün?
+4. docs/*.md → .stan/completed/
+5. Git commit + push (Land the Plane)
+```
 
-### Was Claude Tasks NICHT ersetzt
+### JSONL Task Schema
 
-- Acceptance Criteria (Checkboxen in docs/tasks.md)
-- Task-Typen (gate, manual, review)
-- Iteration-Limits (stan-gate Hook)
-- Task-Sizing (Criteria-basiert)
-- Phasen-Organisation
-- Git-tracked Dokumentation
+```json
+{
+  "id": "t-a1b2",
+  "subject": "Task title",
+  "description": "Detailed description",
+  "status": "pending|in_progress|done|blocked",
+  "phase": "define|plan|create",
+  "dependencies": ["t-xxxx"],
+  "acceptance_criteria": ["AC1", "AC2"],
+  "owner": null,
+  "created_at": "2026-01-24T10:00:00Z",
+  "updated_at": "2026-01-24T10:00:00Z"
+}
+```
 
-### Nutzen der Integration
+### Vorteile vs. Markdown-Only
 
-| Aspekt | Vorher (nur STAN) | Nachher (Hybrid) |
-|--------|-------------------|------------------|
-| **Multi-Agent** | Manuelle Orchestration | Native `owner` |
-| **Session-Wechsel** | State verloren | Bleibt erhalten |
-| **Dependencies** | Manuelle Prüfung | Native Blocking |
-| **Parallel-Arbeit** | Via Worktrees | + Claude Task Coordination |
+| Aspekt | Markdown (alt) | JSONL (neu) |
+|--------|----------------|-------------|
+| **Merge-Konflikte** | Häufig in Worktrees | Selten (1 Zeile = 1 Task) |
+| **ID-Kollisionen** | T-001 kollidiert | Hash-IDs (t-a1b2) |
+| **Parsing** | Regex/Markdown-Parser | JSON.parse() |
+| **Multi-Agent** | Manuelle Orchestration | owner-Feld nativ |
+| **Human-readable** | Direkt editierbar | Generiert (read-only) |
+
+### Neue Skills
+
+| Skill | Funktion |
+|-------|----------|
+| `/stan ready` | Zeigt Tasks ohne offene Blocker |
+| `/stan complete` | Land the Plane: Checks + Archiv + Push |
 
 ### Implementation
 
-Neue Tasks in Phase 14:
-- T-037: Claude Tasks Adapter in `/stan create`
-- T-038: Bidirektionale Sync (Claude ↔ STAN Tasks)
-- T-039: Multi-Agent Owner-Zuweisung
+Phase 18 Tasks:
+- T-047: JSONL Schema + Validator
+- T-048: .stan/ Directory Structure
+- T-049: Markdown Generator (JSONL → docs/tasks.md)
+- T-050: Sync Layer Session Start (JSONL → Claude Tasks)
+- T-051: Sync Layer Runtime (Claude Tasks → JSONL)
+- T-052: /stan ready Skill
+- T-053: /stan complete Skill (Land the Plane)
+- T-054: /stan plan + /stan create Integration
+- T-055: E2E Integration Test
 
 ---
 
@@ -1664,7 +2044,8 @@ Commands sollten **nicht** die volle Logik duplizieren. Stattdessen:
 | Max Iterations = 10 | Default 10 Iterationen pro Task (wie Ralph). Optional in stan.md überschreibbar via `max_iterations: 15`. |
 | Hybrid Commands + Skills | Commands bleiben für explizite Aufrufe (`/stan init`). Skills zusätzlich für automatische Erkennung. Keine Redundanz: Skills verweisen auf Command-Logik. |
 | Complexity Lifecycle | Assessment transparent zeigen → User Override erlauben → Re-Assessment bei Änderung → Escalation bei großem Sprung (Level 1→4 = Reconciliation). |
-| Claude Tasks Hybrid | Claude Tasks (v2.1.16+) als Runtime-Layer für Session-State, Multi-Agent, Dependencies. STAN Tasks bleibt Planning-Layer für Acceptance Criteria, Task-Typen, Git-tracked Docs. |
+| Claude Tasks Hybrid (SUPERSEDED) | ~~Claude Tasks als Runtime-Layer, docs/tasks.md als Source of Truth~~ → Ersetzt durch JSONL Task System (2026-01-24). |
+| JSONL Task System | .stan/tasks.jsonl als Source of Truth, docs/tasks.md wird generiert (read-only), Claude Tasks als Runtime. Hash-IDs für Kollisionsfreiheit in Worktrees. Inspiriert von beads. |
 | Activity Log: NICHT umsetzen | Bewusste Entscheidung gegen Activity Log (Ralph-Style). Redundant zu Claude Tasks und docs/tasks.md. Mehr Overhead als Value. |
 | Multi-Agent Auto-Orchestration: Zukunft | Automatische Parallelisierung/Orchestration als "Future Optional". Basics (Subagents + Worktrees) existieren bereits. Vollautomatische Orchestration = Over-Engineering. |
 | Model Auto-Selection | `model: auto` als Default. Auto-Logik: complexity < 3 → sonnet, complexity ≥ 3 → opus. Haiku nur bei explizitem Override. |
@@ -1674,9 +2055,486 @@ Commands sollten **nicht** die volle Logik duplizieren. Stattdessen:
 
 ---
 
+## Evaluator-Subagent Architektur (VALIDIERT)
+
+> **Status:** ✅ Getestet und validiert
+> **Datum:** 2026-01-25
+> **Problem:** LLMs sind bei Selbst-Evaluation nicht ehrlich genug
+
+### Das Problem
+
+Claude neigt dazu, eigene Arbeit zu oberflächlich zu evaluieren:
+- Checkboxen werden abgehakt ohne echte Prüfung
+- "Sieht gut aus" statt rigoroser Analyse
+- Bias zur eigenen Arbeit (Self-Serving Bias)
+
+### Getestete Ansätze
+
+| Ansatz | Ergebnis | Problem |
+|--------|----------|---------|
+| Prompt-Hook (type: prompt) | ⚠️ Funktioniert generisch | Kann keine Dateien lesen, $TRANSCRIPT_PATH ist nur String |
+| Command-Hook + API | ❌ Braucht API-Token | User hat nur Subscription |
+| **Command-Hook + Subagent** | ✅ **ERFOLG** | Kein API-Token nötig, unabhängige Evaluation |
+
+### Lösung: Command-Hook + Subagent via Task Tool
+
+**Schlüsselerkenntnis:** Hooks können keine Subagenten spawnen, aber sie können den Hauptagent triggern einen zu spawnen!
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Hauptagent                            │
+│  (Arbeitet: editiert Dateien, checkt Checkboxen ab)     │
+└──────────────────────────┬──────────────────────────────┘
+                           │ Edit tool call
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│           PostToolUse Hook (type: command)               │
+│  stan-evaluate.py                                        │
+│                                                          │
+│  1. Liest aktuellen Task aus .stan/tasks.jsonl          │
+│  2. Parst acceptance_criteria für {criteria-name}       │
+│  3. Unterscheidet Acceptance vs Success Criteria        │
+│  4. Wählt Model basierend auf Criteria-Typ              │
+│                                                          │
+│  Output: {continue: true, systemMessage:                │
+│    "Spawne Evaluator: Task(model='sonnet', ...)"}       │
+└──────────────────────────┬──────────────────────────────┘
+                           │ systemMessage → Hauptagent
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│              Hauptagent spawnt Subagent                  │
+│  Task(subagent_type="Explore", model="{model}",         │
+│       prompt="Evaluiere Edit gegen Criteria...")        │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│           Evaluator-Subagent (Haiku/Sonnet)              │
+│  - Separater Kontext (nicht "committed" zum Edit)       │
+│  - Skeptischer Prompt                                   │
+│  - Gibt PASS / FAIL / WARN zurück                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Warum Subagent statt Prompt-Hook:**
+- Prompt-Hooks können keine Dateien lesen ($TRANSCRIPT_PATH ist nur String-Pfad)
+- Command-Hooks können Dateien lesen, aber brauchen eigene LLM-Logik
+- Subagent via Task Tool: Kein API-Token, separater Kontext, unabhängig
+
+**Test-Ergebnis (2026-01-25):**
+Subagent (Haiku) erkannte korrekt als FAIL wenn Checkbox abgehakt wurde ohne echte Erfüllung:
+> "This appears to be exactly the kind of self-serving bias the evaluation task is designed to catch"
+
+### Model Selection: Acceptance vs Success Criteria
+
+**Zwei Typen von Criteria in Tasks:**
+
+| Typ | Syntax | Quelle | Evaluator Model |
+|-----|--------|--------|-----------------|
+| **Acceptance Criteria** | `{criteria-name}` | YAML-Datei | Aus YAML (`evaluator_model`) |
+| **Success Criteria** | Freier Text | Task-Definition | Immer Sonnet (semantisch) |
+
+**Beispiel Task in `.stan/tasks.jsonl`:**
+```json
+{
+  "id": "t-abc1",
+  "subject": "Login-Formular implementieren",
+  "acceptance_criteria": [
+    "Tests bestehen {code-quality}",      // → Acceptance: YAML laden → haiku
+    "Lint ohne Fehler {code-quality}",    // → Acceptance: YAML laden → haiku
+    "User findet UI intuitiv"             // → Success: freier Text → sonnet
+  ]
+}
+```
+
+**Model Selection Logic:**
+```python
+if has_success_criteria:  # Freier Text ohne {...}
+    model = "sonnet"  # Semantische Evaluation nötig
+elif all_acceptance_criteria_use_haiku:
+    model = "haiku"   # Nur Code-Checks
+else:
+    model = "sonnet"  # Gemischt oder enthält Sonnet
+```
+
+**YAML Criteria Packs:**
+```yaml
+# criteria/code-quality.yaml
+name: Code Quality
+evaluator_model: haiku  # Fast model for rule-based checks
+checks:
+  - id: tests-pass
+    question: "Do all tests pass?"
+  - id: lint-pass
+    question: "Does code pass linting?"
+
+# criteria/text-quality.yaml
+name: Text Quality
+evaluator_model: sonnet  # Semantic understanding required
+checks:
+  - id: clarity
+    question: "Is the text clear and understandable?"
+```
+
+**Workflow:**
+1. Hook liest aktuellen `in_progress` Task aus `.stan/tasks.jsonl`
+2. Für jedes `acceptance_criteria`:
+   - Hat `{criteria-name}` → YAML laden → Model aus YAML
+   - Kein `{...}` → Success Criteria → Sonnet
+3. Primary Model = Sonnet wenn Success Criteria vorhanden, sonst aus YAMLs
+4. Hook gibt systemMessage mit richtigem Modell:
+   `Task(model="{primary_model}", ...)`
+
+### Dateistruktur (analog taming-stan)
+
+```
+scripts/
+├── lib/
+│   └── session_state.py       # Cross-hook state management
+└── prompts/
+    ├── criteria-eval.md       # Evaluator-Prompt für Criteria-Check
+    ├── learning-detection.md  # Prompt für Learning-Erkennung
+    └── guess-detection.md     # Prompt für Guess-Erkennung
+
+experiments/
+└── evaluator-hook-test/       # Evaluator-Subagent Experiment
+    ├── stan-evaluate.py       # Evaluator Hook (EXPERIMENTAL)
+    ├── FINDINGS.md            # Test-Ergebnisse
+    └── README.md              # Experiment-Dokumentation
+
+hooks/
+└── hooks.json                 # Konsolidierte Hook-Config mit ${CLAUDE_PLUGIN_ROOT}
+```
+
+**Prompt-Template Pattern:**
+```markdown
+# prompts/criteria-eval.md
+
+Du bist der STAN Evaluator - unabhängiger Qualitätsprüfer.
+
+## Zu prüfendes Edit
+{edit_info}
+
+## Acceptance Criteria
+{criteria}
+
+## Deine Aufgabe
+1. Ist das Kriterium WIRKLICH erfüllt?
+2. Sei skeptisch - der Hauptagent hat Self-Serving Bias
+3. Gib PASS / FAIL / WARN zurück
+```
+
+### Hook Output Formate (VERIFIZIERT)
+
+| Hook Event | Output Format | Blocking |
+|------------|---------------|----------|
+| PostToolUse | `{continue, systemMessage}` | `continue: false` |
+| Stop | `{decision, reason, systemMessage}` | `decision: "block"` |
+| PreToolUse | `{hookSpecificOutput, systemMessage}` | `permissionDecision: "deny"` |
+
+### Konfigurationsformat (WICHTIG!)
+
+**`.claude/settings.json`** - KEIN wrapper:
+```json
+{
+  "PostToolUse": [...],
+  "Stop": [...]
+}
+```
+
+**`hooks/hooks.json`** (Plugin) - MIT wrapper:
+```json
+{
+  "description": "...",
+  "hooks": {
+    "PostToolUse": [...],
+    "Stop": [...]
+  }
+}
+```
+
+### Evaluator pro Phase
+
+| Phase | Unit | Hook-Trigger | Evaluator prüft |
+|-------|------|--------------|-----------------|
+| DEFINE | PRD, Style Guide | PostToolUse(Edit) | Dokument-Qualität |
+| PLAN | Plan.md | PostToolUse(Edit) | Task-Struktur, Dependencies |
+| CREATE | Task | PostToolUse(Edit) + Stop | Code + Tests + AC erfüllt |
+
+### Offene Fragen (BEANTWORTET)
+
+1. **Feedback-Loop:** ✅ `systemMessage` wird ins Transcript geschrieben
+2. **Checkbox-Manipulation:** ✅ Evaluator kann nicht editieren, aber Stop kann blockieren
+3. **Context-Sharing:** ✅ `$TRANSCRIPT_PATH` gibt Zugriff auf vollständige History
+4. **Infinite Loop Prevention:** ⚠️ Noch zu definieren (max_iterations?)
+
+### Experiment-Status
+
+| Experiment | Status | Ergebnis |
+|------------|--------|----------|
+| PostToolUse Prompt Hook | ✅ VALIDIERT | Funktioniert! Hook erkennt oberflächlich abgehakte Checkboxen |
+| Stop Hook Blocking | ✅ Recherche | Unterstützt, `decision: "block"` verhindert Completion |
+| systemMessage Feedback | ✅ VALIDIERT | Wird an Hauptagent weitergeleitet, erscheint im Transcript |
+
+**VALIDIERT am 2026-01-24:** PostToolUse Prompt Hook in `.claude/settings.json` konfiguriert und getestet.
+
+### Akzeptanzkriterien
+
+- [x] Feedback-Mechanismus recherchiert → `systemMessage`
+- [x] Architektur dokumentiert
+- [x] **VALIDIERT:** PostToolUse Prompt Hook getestet - erkennt falsch abgehakte Checkboxen
+- [x] **VALIDIERT:** Command-Hook + Subagent getestet (2026-01-25)
+- [x] **VALIDIERT:** Subagent erkennt Self-Serving Bias korrekt
+- [x] **VALIDIERT:** Feedback-Loop in Praxis verifiziert - systemMessage erscheint im Transcript
+- [x] Kein API-Token nötig - nutzt Claude Code Subscription
+- [ ] In Plugin-Struktur integrieren (scripts/prompts/*.md)
+- [ ] hooks.json mit ${CLAUDE_PLUGIN_ROOT} erstellen
+
+### STAN Integration (Vorgeschlagen)
+
+```json
+{
+  "PostToolUse": [
+    {
+      "matcher": "Edit",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN EVALUATOR: Check if acceptance criteria are genuinely met..."
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "STAN GATE: Review $TRANSCRIPT_PATH. Block if criteria incomplete..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Vorteil:** Ersetzt/ergänzt Python-basierte Hooks (stan-gate.py) mit LLM-basierter Evaluation.
+
+---
+
+## Reflexion: Hybrid Hook-Architektur (2026-01-24)
+
+> **Erkenntnis:** Python-Hooks und Prompt-Hooks haben unterschiedliche Stärken.
+> Optimale Nutzung = Kombination beider Typen.
+
+### Was wir haben (aktueller Stand)
+
+**3 Python-Hooks (command-basiert):**
+| Hook | Event | Funktion |
+|------|-------|----------|
+| `stan_context.py` | UserPromptSubmit | Kontext injizieren, Learnings laden |
+| `stan_track.py` | PostToolUse (Bash) | Test-Ergebnisse tracken, ROT→GRÜN erkennen |
+| `stan_gate.py` | PreToolUse | Phase-Enforcement, Quality Gates, Commit-Blocking |
+
+**11 Commands/Skills:**
+`/stan init`, `/stan define`, `/stan plan`, `/stan create`, `/stan statusupdate`,
+`/stan healthcheck`, `/stan think`, `/stan build-template`, `/stan build-criteria`,
+`/stan ready`, `/stan complete`
+
+**Workflow:**
+```
+DEFINE (interaktiv) → PLAN (interaktiv) → CREATE (autonom)
+        ↑                                      │
+        └──────── Reconciliation ◄─────────────┘
+```
+
+### Was wir heute gelernt haben
+
+**Prompt-Hooks (type: prompt):**
+- LLM-basierte Evaluation OHNE Tool-Zugriff
+- Können semantische Qualität prüfen ("Ist das wirklich erfüllt?")
+- Output: `{continue, systemMessage}` (PostToolUse), `{decision, reason}` (Stop)
+- Variablen: `$TOOL_INPUT.*`, `$TRANSCRIPT_PATH`
+- Erbt Session-Modell (kein separates `model`-Feld)
+
+**Limitationen:**
+- Prompt-Hooks können KEINE MCP-Aufrufe machen
+- Prompt-Hooks können KEINE Dateien lesen (außer via $TRANSCRIPT_PATH)
+- Prompt-Hooks sind reine Text-Evaluation
+
+**Zwei Konfigurationsorte:**
+| Ort | Zweck | Format |
+|-----|-------|--------|
+| `.claude/settings.json` | Lokale Entwicklung/Tests | Kein wrapper, absolute Pfade |
+| `hooks/hooks.json` | Plugin-Distribution | Mit `"hooks"` wrapper, `${CLAUDE_PLUGIN_ROOT}` |
+
+### Optimale Hybrid-Architektur
+
+**Python-Hooks (command) für:**
+- State Management (Session, Learnings)
+- Datei-Parsing (Manifest, Tasks, Criteria)
+- Komplexe Logik (Dependencies, Phase-Transitions)
+- MCP-Integration (falls nötig via Shell)
+
+**Prompt-Hooks für:**
+- Semantische Evaluation ("Ist das Ziel wirklich konkret?")
+- Acceptance Criteria Verification ("Ist das wirklich erfüllt?")
+- Oberflächlich abgehakte Checkboxen erkennen
+- Qualitative Prüfungen die Verständnis erfordern
+
+### Neuer Hook-Aufbau (STAN v2)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STAN Hook-System (Hybrid)                                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  UserPromptSubmit                                            │
+│  └─ stan_context.py (command)                               │
+│     → Kontext injizieren, Learnings laden, Phase anzeigen   │
+│                                                              │
+│  PreToolUse                                                  │
+│  └─ stan_gate.py (command)                                  │
+│     → Phase-Enforcement, Commit-Blocking, 3-Strikes         │
+│                                                              │
+│  PostToolUse (Bash)                                          │
+│  └─ stan_track.py (command)                                 │
+│     → Test-Tracking, ROT→GRÜN Detection, Learning-Trigger   │
+│                                                              │
+│  PostToolUse (Edit) ← NEU                                    │
+│  └─ STAN Evaluator (prompt)                                 │
+│     → Acceptance Criteria Verification                       │
+│     → Oberflächliche Checkbox-Erkennung                      │
+│     → Qualitative Dokumenten-Prüfung                         │
+│                                                              │
+│  Stop ← NEU                                                  │
+│  └─ STAN Final Check (prompt)                               │
+│     → Alle Criteria erfüllt?                                 │
+│     → Keine offenen TODOs?                                   │
+│     → Kann blockieren mit spezifischem Feedback              │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Workflow mit Evaluator-Hooks
+
+```
+User: "/stan create"
+        │
+        ▼
+┌───────────────────────────────────────┐
+│ stan_context.py (UserPromptSubmit)    │
+│ → Zeigt Phase, Task, injiziert Kontext│
+└───────────────────────────────────────┘
+        │
+        ▼
+┌───────────────────────────────────────┐
+│ Claude arbeitet (Edit, Bash, etc.)    │
+│                                       │
+│ Bei JEDEM Edit:                       │
+│   ↓                                   │
+│   PostToolUse(Edit) → Prompt-Hook     │
+│   "Ist diese Änderung wirklich        │
+│    vollständig und korrekt?"          │
+│   → systemMessage mit Feedback        │
+│                                       │
+│ Bei Test-Commands:                    │
+│   ↓                                   │
+│   stan_track.py → ROT→GRÜN erkennen   │
+│   → Learning-Reminder wenn nötig      │
+└───────────────────────────────────────┘
+        │
+        ▼ (Claude will stoppen)
+┌───────────────────────────────────────┐
+│ Stop Hook → Prompt-Hook               │
+│ "Prüfe $TRANSCRIPT_PATH:              │
+│  - Alle Acceptance Criteria erfüllt?  │
+│  - Keine offenen TODOs?               │
+│  - Tests grün?"                       │
+│                                       │
+│ → approve: Task abgeschlossen         │
+│ → block: Spezifisches Feedback        │
+└───────────────────────────────────────┘
+```
+
+### Implementierungs-Schritte
+
+**Phase 19: Evaluator-Hook Integration**
+
+| Task | Beschreibung | Status |
+|------|--------------|--------|
+| E-001 | Prompt-Hook für PostToolUse(Edit) in hooks/hooks.json | · |
+| E-002 | Prompt-Hook für Stop in hooks/hooks.json | · |
+| E-003 | Prompt-Formulierung für STAN-spezifische Evaluation | · |
+| E-004 | Integration mit Criteria-System (Criteria im Prompt referenzieren) | · |
+| E-005 | Test in echtem Projekt (außerhalb autonomous-stan) | · |
+| E-006 | Dokumentation aktualisieren | · |
+
+### Prompt-Entwürfe (KORRIGIERT 2026-01-24)
+
+> **WICHTIG:** Prompt-Hooks dürfen NIEMALS JSON-Output anfordern!
+> Das System handled die Formatierung automatisch. Nur Analyse-Anweisungen geben.
+
+**PostToolUse(Edit) Evaluator:**
+```
+You are the STAN EVALUATOR - independent quality checker.
+
+The main agent just edited: $TOOL_INPUT.file_path
+Change: "$TOOL_INPUT.old_string" → "$TOOL_INPUT.new_string"
+
+Analyze critically:
+1. If a checkbox was marked complete: Is the criterion ACTUALLY met? Look for real evidence in the file.
+2. If code was written: Is it complete? Any TODOs, placeholder comments, missing imports, unfinished logic?
+3. If acceptance criteria were checked: Does the actual implementation match?
+
+Be skeptical. The main agent has self-serving bias and tends to check boxes prematurely.
+
+If you find issues, state them specifically. If the edit is legitimate, confirm briefly.
+```
+
+**Stop Final Check:**
+```
+You are the STAN GATE - final quality barrier before task completion.
+
+Review the transcript for this task.
+
+Before allowing completion, verify:
+1. ALL acceptance criteria are genuinely met (not just checked off)
+2. No TODO comments or incomplete implementations remain
+3. If tests were required, they must have passed
+4. Document quality matches the stated requirements
+
+If everything is genuinely complete, confirm approval.
+If issues remain, list them specifically so the agent can address them.
+```
+
+### Offene Fragen
+
+1. **Infinite Loop Prevention:** Was wenn Evaluator immer "needs_work" sagt?
+   → Lösung: max_evaluator_iterations in stan.md (Default: 3)
+
+2. **Performance:** Prompt-Hooks brauchen LLM-Aufruf (+ Latenz)
+   → Lösung: Nur für Edit aktivieren, nicht für jedes Tool
+
+3. **Criteria-Referenz:** Wie kommt der Prompt an die aktuellen Criteria?
+   → Lösung: Python-Hook (stan_context) injiziert Criteria in Session-Context,
+     Prompt-Hook sieht das via $TRANSCRIPT_PATH
+
+### Nächste Schritte (priorisiert)
+
+1. **JETZT:** Evaluator-Hooks in `hooks/hooks.json` für Plugin-Distribution vorbereiten
+2. **DANN:** Test in separatem Projekt mit installiertem Plugin
+3. **DANACH:** Feintuning der Prompts basierend auf Praxis-Erfahrung
+
+---
+
 ## Referenz-Material
 
 - `vendor/ralph/CLAUDE.md` - Progress-Tracking, Codebase Patterns
 - `vendor/ralph/skills/ralph/SKILL.md` - Task-Sizing, Acceptance Criteria
+- `vendor/beads/docs/ARCHITECTURE.md` - JSONL + SQLite drei-schichtige Architektur
+- `vendor/beads/docs/MOLECULES.md` - Workflow-Patterns (Land the Plane, Wisps)
+- `vendor/beads/AGENTS.md` - Agent Instructions (mandatory push)
 - `.claude/rules/taming-stan/stanflux.md` - STAN.FLUX Verhaltensregeln
 - Context7: `/anthropics/claude-code` - Hook-Dokumentation

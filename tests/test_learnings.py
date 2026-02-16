@@ -9,8 +9,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-# Add hooks lib to path
-sys.path.insert(0, str(Path(__file__).parent.parent / ".claude/hooks/stan/lib"))
+# Path configured in conftest.py
 
 import learnings
 

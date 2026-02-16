@@ -1,66 +1,25 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/session-start/reset-session-flags.py"
-          }
-        ],
-        "once": true
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/user-prompt-submit/stan_context.py"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/post-tool-use/stan_track.py"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/stan/pre-tool-use/stan_gate.py"
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Edit|Write|Glob|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/file-context-tracker.py"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/git-workflow-guard.py"
           },
           {
             "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/git-workflow-guard.py"
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/playwright-guard.py"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__playwright.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/playwright-guard.py"
           }
         ]
       },
@@ -69,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/agent-browser-guard.py"
+            "command": "/Volumes/DATEN/Coding/autonomous-stan/.claude/hooks/taming-stan/pre-tool-use/playwright-guard.py"
           }
         ]
       }

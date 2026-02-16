@@ -63,12 +63,12 @@ class TestCreateCommandHasRule:
 
     def test_create_command_exists(self):
         """Create command must exist."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         assert cmd_file.exists(), f"Create command not found: {cmd_file}"
 
     def test_create_command_mentions_required_tasks(self):
         """Create command must mention that pending tasks are required."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text().lower()
         # Should mention required/must/mandatory for pending tasks
         assert "required" in content or "must" in content or "mandatory" in content, \
@@ -76,7 +76,7 @@ class TestCreateCommandHasRule:
 
     def test_create_command_warns_against_optional(self):
         """Create command should warn against calling things optional."""
-        cmd_file = PROJECT_ROOT / ".claude" / "commands" / "stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
         content = cmd_file.read_text().lower()
         # Should have some warning about not calling things optional
         assert "never" in content or "not" in content, \

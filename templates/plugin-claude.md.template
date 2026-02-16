@@ -1,3 +1,11 @@
+---
+type: plugin-config
+status: active
+created: {{date}}
+criteria:
+  - meta-criteria-valid
+---
+
 #PITH:1.2
 #RULE:autonomous-stan|stand:2026-01
 

@@ -11,12 +11,10 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 from io import StringIO
 
-# Add hooks to path
-HOOKS_DIR = Path(__file__).parent.parent / ".claude/hooks/stan"
+# Add hooks to path (new plugin structure)
+HOOKS_DIR = Path(__file__).parent.parent / "hooks/autonomous-stan"
 sys.path.insert(0, str(HOOKS_DIR / "lib"))
-sys.path.insert(0, str(HOOKS_DIR / "user-prompt-submit"))
-sys.path.insert(0, str(HOOKS_DIR / "post-tool-use"))
-sys.path.insert(0, str(HOOKS_DIR / "pre-tool-use"))
+sys.path.insert(0, str(HOOKS_DIR))
 
 
 class TestStanContext:
@@ -255,7 +253,9 @@ class TestStanGate:
 
             with patch('sys.stdin', StringIO(input_data)):
                 with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-                    stan_gate.main()
+                    # Mock worktree check to allow commit (we're testing pending learnings)
+                    with patch.object(stan_gate, 'check_worktree', return_value=(True, None)):
+                        stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
             assert output["continue"] is False
@@ -281,7 +281,9 @@ class TestStanGate:
             with patch('sys.stdin', StringIO(input_data)):
                 with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                     with patch.object(stan_gate, 'get_last_test_status', return_value=True):
-                        stan_gate.main()
+                        # Mock worktree check to allow commit
+                        with patch.object(stan_gate, 'check_worktree', return_value=(True, None)):
+                            stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
             assert output["continue"] is True
@@ -307,7 +309,9 @@ class TestStanGate:
 
             with patch('sys.stdin', StringIO(input_data)):
                 with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-                    stan_gate.main()
+                    # Mock worktree check to allow commit
+                    with patch.object(stan_gate, 'check_worktree', return_value=(True, None)):
+                        stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
             # Should continue but with warning

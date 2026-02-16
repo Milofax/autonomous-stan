@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Add lib to path
 PROJECT_ROOT = Path(__file__).parent.parent
-HOOKS_LIB = PROJECT_ROOT / ".claude" / "hooks" / "stan" / "lib"
+HOOKS_LIB = PROJECT_ROOT / "hooks" / "autonomous-stan" / "lib"
 sys.path.insert(0, str(HOOKS_LIB))
 
 import config

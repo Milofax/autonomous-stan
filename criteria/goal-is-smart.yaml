@@ -1,5 +1,6 @@
 name: Goal Quality
 description: What makes a good goal?
+evaluator_model: sonnet  # Semantic understanding required
 
 checks:
   - id: concrete
