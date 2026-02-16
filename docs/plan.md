@@ -2541,6 +2541,45 @@ If issues remain, list them specifically so the agent can address them.
 
 ---
 
+### Phase 21: Smart Project Discovery & Architecture Consistency
+
+**Motivation:** Factory/Eno Reyes zeigt: Skills die Source-of-Truth Docs einbinden produzieren drastisch bessere Ergebnisse. Aber statt manuell Notion-Docs zu kuratieren, soll autonomous-stan die Architektur-Patterns eines Projekts **selbst entdecken**.
+
+**Kernidee:** `/stan init` wird intelligent. Es scannt das Projekt, erkennt Stack, Patterns, Konventionen und legt das als Context ab. Criteria und Techniques nutzen diesen Context automatisch.
+
+| Task | Beschreibung | Status |
+|------|--------------|--------|
+| D-001 | **Project Discovery in `/stan init`**: Stack-Erkennung (package.json, Cargo.toml, pyproject.toml, etc.), Framework-Detection (Astro, Next, Django, etc.), Architektur-Patterns scannen (3-5 repräsentative Dateien analysieren), Ergebnis in `.stan/context/project-patterns.md` ablegen | · |
+| D-002 | **Architecture Consistency Criterion**: Neues Criterion `architecture-consistency.yaml` — prüft ob Änderungen den entdeckten Patterns folgen. Checks: Dateistruktur, Import-Konventionen, Styling-Approach, Error-Handling-Pattern, Test-Patterns. Abweichung = nur mit dokumentiertem Grund erlaubt | · |
+| D-003 | **Brownfield als Default**: Technique `brownfield-reality-check` wird automatisch bei `/stan create` getriggert. Vor jeder neuen Datei: 3 ähnliche bestehende Dateien lesen. Vor jedem neuen Pattern: prüfen ob es schon eins gibt | · |
+| D-004 | **Iterative Spec-Validation**: Evaluator-Hook prüft Edits nicht nur gegen Code-Qualität, sondern auch gegen die aktuelle Spec (`.stan/prd.md`). Spec-Änderungen triggern Plan-Review. Spec ist lebendig, nicht eingefroren | · |
+| D-005 | **Context Injection erweitern**: `stan_context.py` injiziert `.stan/context/project-patterns.md` in den System-Context bei jedem UserPrompt. Nicht den ganzen File — nur die relevanten Sections basierend auf dem aktuellen Task | · |
+| D-006 | **Auto-Discovery bei bestehendem Projekt**: `/stan init` in einem Projekt das schon Code hat → analysiert bestehende Patterns statt Defaults anzunehmen. Erkennt: Component-Struktur, Routing-Pattern, State-Management, CSS-Approach, Test-Framework + Patterns | · |
+| D-007 | **Living Architecture Doc**: `.stan/context/project-patterns.md` wird nach jedem `/stan complete` aktualisiert wenn sich Patterns geändert haben (z.B. neues Pattern eingeführt, Migration auf anderes Framework) | · |
+
+**Architektur:**
+```
+/stan init (enhanced)
+  ├── Stack Detection (package.json, config files)
+  ├── Pattern Analysis (3-5 representative files)
+  ├── Convention Extraction (naming, structure, imports)
+  └── .stan/context/project-patterns.md (generated)
+
+/stan create (enhanced)
+  ├── Brownfield Check (automatic, before any new file)
+  ├── Pattern Compliance (architecture-consistency criterion)
+  ├── Spec Validation (evaluator checks against prd.md)
+  └── Pattern Update (on /stan complete if patterns evolved)
+```
+
+**Inspiriert von:**
+- Factory/Eno Reyes: Source-of-Truth Docs in Skills → dramatisch bessere Outputs
+- Superpowers: Brownfield Reality Check Technique
+- GSD: Context Rot Prevention (patterns.md = Anti-Context-Rot)
+- Eigene Erfahrung: CSS-Basics-Krise (14.02.) — Agent kannte Projektkonventionen nicht
+
+---
+
 ### Phase 20: Agent Teams Integration (Future)
 
 **Voraussetzung:** CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS stable
