@@ -59,7 +59,34 @@ Use AskUserQuestion to collect user preferences:
 
 Save config to `.stan/config.yaml` using the config module.
 
-### 5. Collect Project Information (Interactive)
+### 5. MCP Tool Discovery (Interactive)
+
+Ask which MCP tools are available. This determines which research enforcement hooks are active.
+
+**Question:** "Which of these MCP tools do you have installed?"
+
+Present as a checklist:
+- **Graphiti** — Long-term knowledge graph (personal learnings, decisions, contacts)
+- **Context7** — Live documentation for 60,000+ libraries (current API docs, not training data)
+- **Firecrawl** — Web scraping, search, and structured data extraction
+
+The user can select none, some, or all. Default: none selected.
+
+**Why this matters:** STAN enforces a research cascade before technical decisions:
+1. Graphiti first (check your own past learnings)
+2. Context7 second (get live docs for known libraries)
+3. Web search last (general research)
+
+If a tool isn't installed, that step is skipped automatically. No enforcement, no blocks, no errors.
+
+Store the selection in `.stan/config.yaml` under `tools:`.
+
+**Detection hint:** If the user is unsure, suggest they check their Claude Code MCP settings:
+- Look for `mcp__graphiti__*` tools → Graphiti is installed
+- Look for `mcp__context7__*` tools → Context7 is installed  
+- Look for `mcp__firecrawl__*` tools → Firecrawl is installed
+
+### 6. Collect Project Information (Interactive)
 
 - **Project Name:** What is the project called?
 - **Description:** Brief description in 1-2 sentences
@@ -75,7 +102,7 @@ Save config to `.stan/config.yaml` using the config module.
 
 Show your initial assessment with reasoning, then ask if the user agrees or wants to adjust.
 
-### 6. Create Project Files
+### 7. Create Project Files
 
 1. Create `stan.md` based on template:
    - Use template from `templates/stan.md.template`
@@ -85,7 +112,7 @@ Show your initial assessment with reasoning, then ask if the user agrees or want
 
 2. Create `docs/` directory if it doesn't exist
 
-### 7. Confirm Initialization
+### 8. Confirm Initialization
 
 ```
 STAN initialized!
@@ -97,9 +124,14 @@ Structure created:
   - .stan/              (STAN data directory)
   - .stan/tasks.jsonl   (task storage)
   - .stan/completed/    (completed features archive)
-  - .stan/config.yaml   (user preferences)
+  - .stan/config.yaml   (user preferences + tools)
   - stan.md             (project manifest)
   - docs/               (documentation)
+
+Research Tools:
+  - Graphiti:  {yes/no}  {if yes: "→ Research cascade enforced: Graphiti first"}
+  - Context7:  {yes/no}  {if yes: "→ Live docs for known libraries"}
+  - Firecrawl: {yes/no}  {if yes: "→ Web scraping available"}
 
 Next step: /stan define
 ```

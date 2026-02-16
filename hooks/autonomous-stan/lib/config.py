@@ -171,11 +171,23 @@ class ProjectConfig:
 
 
 @dataclass
+class ToolsConfig:
+    """Available MCP tools declared at init time."""
+    graphiti: bool = False
+    context7: bool = False
+    firecrawl: bool = False
+
+    # Additional tools can be added here as needed
+    # Each tool is a simple bool: installed or not
+
+
+@dataclass
 class StanConfig:
     """Complete STAN configuration."""
     user: UserConfig = field(default_factory=UserConfig)
     language: LanguageConfig = field(default_factory=LanguageConfig)
     project: ProjectConfig = field(default_factory=ProjectConfig)
+    tools: ToolsConfig = field(default_factory=ToolsConfig)
 
 
 # --- Load / Save ---
@@ -204,6 +216,7 @@ def load_config() -> Optional[StanConfig]:
         user_data = data.get("user", {})
         language_data = data.get("language", {})
         project_data = data.get("project", {})
+        tools_data = data.get("tools", {})
 
         return StanConfig(
             user=UserConfig(
@@ -217,6 +230,11 @@ def load_config() -> Optional[StanConfig]:
             project=ProjectConfig(
                 name=project_data.get("name", ""),
                 output_folder=project_data.get("output_folder", ".stan")
+            ),
+            tools=ToolsConfig(
+                graphiti=bool(tools_data.get("graphiti", False)),
+                context7=bool(tools_data.get("context7", False)),
+                firecrawl=bool(tools_data.get("firecrawl", False))
             )
         )
     except Exception:
@@ -273,13 +291,24 @@ language:
 project:
   name: "{project_name}"
   output_folder: "{output_folder}"
+
+# --- Available MCP Tools ---
+# Declared at /stan init time. Hooks use this to know what's installed.
+# true = installed and available, false = not installed
+tools:
+  graphiti: {graphiti}       # Long-term knowledge graph (Graphiti MCP)
+  context7: {context7}       # Live library docs (Context7 MCP)
+  firecrawl: {firecrawl}     # Web scraping/search (Firecrawl MCP)
 """.format(
             name=config.user.name,
             skill_level=config.user.skill_level,
             communication=config.language.communication,
             documents=config.language.documents,
             project_name=config.project.name,
-            output_folder=config.project.output_folder
+            output_folder=config.project.output_folder,
+            graphiti=str(config.tools.graphiti).lower(),
+            context7=str(config.tools.context7).lower(),
+            firecrawl=str(config.tools.firecrawl).lower()
         )
 
         with open(config_file, "w") as f:
@@ -477,6 +506,44 @@ def set_project_complexity(level: int) -> bool:
         return True
     except Exception:
         return False
+
+
+# --- Tool Availability Getters ---
+
+def get_tools_config() -> ToolsConfig:
+    """Get declared tools config. Returns all-False if not configured."""
+    config = load_config()
+    if config:
+        return config.tools
+    return ToolsConfig()
+
+
+def has_graphiti() -> bool:
+    """Check if Graphiti MCP was declared as available at init time."""
+    return get_tools_config().graphiti
+
+
+def has_context7() -> bool:
+    """Check if Context7 MCP was declared as available at init time."""
+    return get_tools_config().context7
+
+
+def has_firecrawl() -> bool:
+    """Check if Firecrawl MCP was declared as available at init time."""
+    return get_tools_config().firecrawl
+
+
+def get_available_tools() -> list:
+    """Get list of tool names declared as available."""
+    tc = get_tools_config()
+    tools = []
+    if tc.graphiti:
+        tools.append("graphiti")
+    if tc.context7:
+        tools.append("context7")
+    if tc.firecrawl:
+        tools.append("firecrawl")
+    return tools
 
 
 def get_complexity_info(level: int = None) -> dict:

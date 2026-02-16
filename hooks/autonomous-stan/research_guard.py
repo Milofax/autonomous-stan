@@ -10,8 +10,9 @@ knowledge hierarchy is respected:
 2. Context7 (live docs for known libraries)
 3. Firecrawl / WebSearch / WebFetch (general web)
 
-Dynamically adapts based on which tools are actually available in the
-session (detected via register_hook pattern from taming-stan).
+Tool availability is determined at INIT TIME via `.stan/config.yaml`
+(declared by user during /stan init), not at runtime.
+If a tool isn't declared as available, that enforcement step is skipped.
 
 Also tracks research activity so other hooks can verify research happened.
 """
@@ -21,11 +22,73 @@ import sys
 import os
 from pathlib import Path
 
-# --- Session State (simplified from taming-stan) ---
+# --- Config Loading ---
+
+def get_project_root():
+    """Find project root by looking for .stan/ directory."""
+    cwd = Path(os.getcwd())
+    # Walk up from cwd looking for .stan/
+    for d in [cwd] + list(cwd.parents):
+        if (d / ".stan").is_dir():
+            return d
+    return cwd
+
+
+def load_tools_config():
+    """
+    Load tools config from .stan/config.yaml.
+    Returns dict with tool availability booleans.
+    Falls back to all-False if config doesn't exist.
+    """
+    root = get_project_root()
+    config_file = root / ".stan" / "config.yaml"
+
+    if not config_file.exists():
+        return {"graphiti": False, "context7": False, "firecrawl": False}
+
+    try:
+        # Try pyyaml first
+        import yaml
+        with open(config_file) as f:
+            data = yaml.safe_load(f)
+        tools = data.get("tools", {}) if data else {}
+        return {
+            "graphiti": bool(tools.get("graphiti", False)),
+            "context7": bool(tools.get("context7", False)),
+            "firecrawl": bool(tools.get("firecrawl", False)),
+        }
+    except ImportError:
+        pass
+
+    # Fallback: simple line-based parser for tools section
+    try:
+        in_tools = False
+        tools = {"graphiti": False, "context7": False, "firecrawl": False}
+        for line in config_file.read_text().splitlines():
+            stripped = line.strip()
+            # Detect tools: section
+            if stripped == "tools:" or stripped.startswith("tools:"):
+                in_tools = True
+                continue
+            # Stop at next top-level section
+            if in_tools and not line.startswith(" ") and not line.startswith("\t") and stripped:
+                break
+            if in_tools:
+                for tool in ["graphiti", "context7", "firecrawl"]:
+                    if stripped.startswith(f"{tool}:"):
+                        val = stripped.split(":", 1)[1].strip().split("#")[0].strip().lower()
+                        tools[tool] = val == "true"
+        return tools
+    except Exception:
+        return {"graphiti": False, "context7": False, "firecrawl": False}
+
+
+# --- Session State (tracks research activity within session) ---
 
 def get_state_path():
     state_dir = Path(os.environ.get('STAN_STATE_DIR', '/tmp'))
     return state_dir / '.stan' / 'research_state.json'
+
 
 def read_state():
     sp = get_state_path()
@@ -33,6 +96,7 @@ def read_state():
         return json.loads(sp.read_text()) if sp.exists() else {}
     except (json.JSONDecodeError, Exception):
         return {}
+
 
 def write_state(key, value):
     sp = get_state_path()
@@ -44,12 +108,14 @@ def write_state(key, value):
     except Exception:
         pass
 
+
 def append_to_list(key, value):
     state = read_state()
     lst = state.get(key, [])
     if value not in lst:
         lst.append(value)
     write_state(key, lst)
+
 
 # --- Tool Detection ---
 
@@ -79,16 +145,6 @@ def is_lib_search(query):
         if lib in ql and any(t in ql for t in DOC_TERMS):
             return True, lib
     return False, ""
-
-
-def is_graphiti_available():
-    """Check if Graphiti MCP is registered in session."""
-    return read_state().get("graphiti_available", False)
-
-
-def is_context7_available():
-    """Check if Context7 MCP is registered in session."""
-    return read_state().get("context7_available", False)
 
 
 def graphiti_was_searched():
@@ -132,28 +188,35 @@ def main():
     tool_name = input_data.get("tool_name", "")
     tool_input = input_data.get("tool_input", {})
 
-    # --- Register available tools ---
+    # Load tool availability from config (declared at /stan init)
+    tools = load_tools_config()
+    has_graphiti = tools["graphiti"]
+    has_context7 = tools["context7"]
 
-    # Detect MCP bridge calls to identify available tools
+    # --- Track Graphiti usage ---
+
+    # Direct MCP calls
+    if "graphiti" in tool_name.lower():
+        write_state("graphiti_searched", True)
+        write_state("research_done", True)
+        print(json.dumps(allow()))
+        return
+
+    # MCP bridge calls
     if tool_name == "mcp__mcp-funnel__bridge_tool_request":
         bridge_tool = tool_input.get("tool", "").lower()
         args = tool_input.get("arguments", {})
 
-        # Register Graphiti
         if "graphiti" in bridge_tool:
-            write_state("graphiti_available", True)
             if "search" in bridge_tool:
                 write_state("graphiti_searched", True)
                 write_state("research_done", True)
             print(json.dumps(allow()))
             return
 
-        # Register Context7
         if "context7" in bridge_tool:
-            write_state("context7_available", True)
-
-            # Enforce: Graphiti first
-            if is_graphiti_available() and not graphiti_was_searched():
+            # Enforce: Graphiti first (only if declared available)
+            if has_graphiti and not graphiti_was_searched():
                 query = args.get("query", "") or args.get("topic", "")
                 print(json.dumps(deny(
                     "📚 GRAPHITI ZUERST!\n\n"
@@ -173,18 +236,17 @@ def main():
             print(json.dumps(allow()))
             return
 
-        # Register Firecrawl
         if "firecrawl" in bridge_tool:
-            # Enforce: Graphiti first
-            if is_graphiti_available() and not graphiti_was_searched():
+            # Enforce: Graphiti first (only if declared available)
+            if has_graphiti and not graphiti_was_searched():
                 print(json.dumps(deny(
                     "📚 GRAPHITI ZUERST!\n"
                     "→ search_nodes(query: \"...\") bevor du extern suchst."
                 )))
                 return
 
-            # Suggest: Context7 for known libs
-            if is_context7_available():
+            # Suggest: Context7 for known libs (only if declared available)
+            if has_context7:
                 query = args.get("query", "") or args.get("url", "")
                 is_lib, lib = is_lib_search(query)
                 checked = read_state().get("context7_libs_checked", [])
@@ -201,11 +263,37 @@ def main():
             print(json.dumps(allow()))
             return
 
+    # --- Direct Context7 MCP calls ---
+
+    if "context7" in tool_name.lower():
+        if has_graphiti and not graphiti_was_searched():
+            print(json.dumps(deny(
+                "📚 GRAPHITI ZUERST!\n"
+                "→ search_nodes(query: \"...\") bevor du Context7 nutzt."
+            )))
+            return
+        write_state("research_done", True)
+        print(json.dumps(allow()))
+        return
+
+    # --- Direct Firecrawl MCP calls ---
+
+    if "firecrawl" in tool_name.lower():
+        if has_graphiti and not graphiti_was_searched():
+            print(json.dumps(deny(
+                "📚 GRAPHITI ZUERST!\n"
+                "→ search_nodes(query: \"...\") bevor du extern suchst."
+            )))
+            return
+        write_state("research_done", True)
+        print(json.dumps(allow()))
+        return
+
     # --- WebSearch / WebFetch ---
 
     if tool_name in ("WebSearch", "web_search"):
-        # Enforce: Graphiti first
-        if is_graphiti_available() and not graphiti_was_searched():
+        # Enforce: Graphiti first (only if declared available)
+        if has_graphiti and not graphiti_was_searched():
             query = tool_input.get("query", "")
             print(json.dumps(deny(
                 f"📚 GRAPHITI ZUERST!\n\n"
@@ -215,8 +303,8 @@ def main():
             )))
             return
 
-        # Suggest: Context7 for library docs
-        if is_context7_available():
+        # Suggest: Context7 for library docs (only if declared available)
+        if has_context7:
             query = tool_input.get("query", "")
             is_lib, lib = is_lib_search(query)
             checked = read_state().get("context7_libs_checked", [])
@@ -233,8 +321,8 @@ def main():
         return
 
     if tool_name in ("WebFetch", "web_fetch"):
-        # Same cascade as WebSearch
-        if is_graphiti_available() and not graphiti_was_searched():
+        # Enforce: Graphiti first (only if declared available)
+        if has_graphiti and not graphiti_was_searched():
             print(json.dumps(deny(
                 "📚 GRAPHITI ZUERST!\n"
                 "→ search_nodes(query: \"...\") bevor du extern fetchst."
