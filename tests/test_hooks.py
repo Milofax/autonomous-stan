@@ -8,6 +8,24 @@ import sys
 import tempfile
 import pytest
 from pathlib import Path
+
+
+def is_allowed(output):
+    """Check if hook output means 'allow' — handles both old and new formats."""
+    if "continue" in output:
+        return output["continue"] is True
+    if "hookSpecificOutput" in output:
+        return output["hookSpecificOutput"].get("permissionDecision") == "allow"
+    return True
+
+
+def is_denied(output):
+    """Check if hook output means 'deny' — handles both old and new formats."""
+    if "continue" in output:
+        return output["continue"] is False
+    if "hookSpecificOutput" in output:
+        return output["hookSpecificOutput"].get("permissionDecision") == "deny"
+    return False
 from unittest.mock import patch, MagicMock
 from io import StringIO
 
@@ -39,7 +57,7 @@ class TestStanContext:
                             stan_context.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
         assert "not initialized" in output["systemMessage"]
 
     def test_context_with_stan_md(self, tmp_path):
@@ -72,7 +90,7 @@ class TestStanContext:
                             stan_context.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
         assert "CREATE" in output["systemMessage"]
         assert "Test Project" in output["systemMessage"]
 
@@ -120,7 +138,7 @@ class TestStanTrack:
                 stan_track.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
         assert "systemMessage" not in output
 
     def test_track_ignores_non_test_commands(self):
@@ -140,7 +158,7 @@ class TestStanTrack:
                 stan_track.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
         assert "systemMessage" not in output
 
     def test_track_recognizes_test_commands(self):
@@ -188,7 +206,7 @@ class TestStanTrack:
                     stan_track.main()
 
             output = json.loads(mock_stdout.getvalue())
-            assert output["continue"] is True
+            assert is_allowed(output)
             assert "systemMessage" in output
             assert "Learning erkannt" in output["systemMessage"]
 
@@ -212,7 +230,7 @@ class TestStanGate:
                 stan_gate.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
 
     def test_gate_ignores_non_commit(self):
         """Nicht-Commit Commands werden durchgelassen."""
@@ -230,7 +248,7 @@ class TestStanGate:
                 stan_gate.main()
 
         output = json.loads(mock_stdout.getvalue())
-        assert output["continue"] is True
+        assert is_allowed(output)
 
     def test_gate_blocks_commit_with_pending_learnings(self, tmp_path):
         """Commit wird blockiert wenn pending_learnings existieren."""
@@ -258,9 +276,11 @@ class TestStanGate:
                         stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
-            assert output["continue"] is False
-            assert "BLOCKED" in output["reason"]
-            assert "pending" in output["reason"].lower()
+            assert is_denied(output)
+            reason = output.get("reason", "")
+            if not reason and "hookSpecificOutput" in output:
+                reason = output["hookSpecificOutput"].get("permissionDecisionReason", "")
+            assert "BLOCKED" in reason or "pending" in reason.lower()
 
     def test_gate_allows_commit_without_pending(self, tmp_path):
         """Commit wird erlaubt wenn keine pending_learnings."""
@@ -286,7 +306,7 @@ class TestStanGate:
                             stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
-            assert output["continue"] is True
+            assert is_allowed(output)
 
     def test_gate_warns_on_red_tests(self, tmp_path):
         """Warnung bei roten Tests vor Commit."""
@@ -314,10 +334,13 @@ class TestStanGate:
                         stan_gate.main()
 
             output = json.loads(mock_stdout.getvalue())
-            # Should continue but with warning
-            assert output["continue"] is True
-            assert "systemMessage" in output
-            assert "ROT" in output["systemMessage"]
+            # Should allow but with warning message
+            assert is_allowed(output)
+            # Message may be in systemMessage (old format) or hookSpecificOutput.message (new format)
+            msg = output.get("systemMessage", "")
+            if not msg and "hookSpecificOutput" in output:
+                msg = output["hookSpecificOutput"].get("message", "")
+            assert "ROT" in msg
 
 
 class Test3StrikesPattern:

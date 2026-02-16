@@ -111,12 +111,12 @@ class TestInitCommandComplexity:
 
     def test_init_command_exists(self):
         """Init command should exist."""
-        init_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "init.md"
+        init_file = PROJECT_ROOT / "commands" / "stan" / "init.md"
         assert init_file.exists(), f"Init command not found: {init_file}"
 
     def test_init_command_mentions_complexity(self):
         """Init command should mention complexity."""
-        init_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "init.md"
+        init_file = PROJECT_ROOT / "commands" / "stan" / "init.md"
         content = init_file.read_text()
 
         assert "complexity" in content.lower(), \

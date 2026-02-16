@@ -16,12 +16,12 @@ class TestCompleteCommandExists:
 
     def test_complete_command_exists(self):
         """Complete command file should exist."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         assert cmd_file.exists(), f"Complete command not found: {cmd_file}"
 
     def test_complete_command_has_trigger_words(self):
         """Complete command should mention trigger words."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention trigger words
@@ -34,7 +34,7 @@ class TestCompleteCommandExists:
 
     def test_complete_command_mentions_confirmation(self):
         """Complete command should mention confirmation before completing."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should ask for confirmation
@@ -51,7 +51,7 @@ class TestCompletedDirectory:
 
     def test_complete_command_mentions_completed_directory(self):
         """Complete command should mention .stan/completed/."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         assert ".stan/completed" in content or "completed/" in content, \
@@ -59,7 +59,7 @@ class TestCompletedDirectory:
 
     def test_complete_command_describes_package_move(self):
         """Complete command should describe moving all 3 documents."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention prd, plan, and tasks
@@ -73,7 +73,7 @@ class TestFeatureNaming:
 
     def test_complete_command_uses_feature_name(self):
         """Complete command should use feature name, not date."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention feature name in filename
@@ -86,7 +86,7 @@ class TestFeatureNaming:
 
     def test_complete_command_adds_frontmatter_date(self):
         """Complete command should add completed_at to frontmatter."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention frontmatter update
@@ -99,7 +99,7 @@ class TestNewFilesFromTemplates:
 
     def test_complete_command_creates_new_files(self):
         """Complete command should create new files from templates."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention creating new files
@@ -116,7 +116,7 @@ class TestOptionalLearningsPromotion:
 
     def test_complete_command_mentions_learnings(self):
         """Complete command should mention optional learnings promotion."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "complete.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "complete.md"
         content = cmd_file.read_text()
 
         # Should mention learnings (optional)

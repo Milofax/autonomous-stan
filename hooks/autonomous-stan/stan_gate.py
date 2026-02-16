@@ -401,14 +401,42 @@ def auto_transition_on_done() -> str | None:
     return None
 
 
+def allow(message=None):
+    """PreToolUse: Allow the tool call, optionally with a system message."""
+    result = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow"
+        }
+    }
+    if message:
+        result["hookSpecificOutput"]["message"] = message
+    return result
+
+
+def deny(reason):
+    """PreToolUse: Block the tool call with a reason."""
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason
+        }
+    }
+
+
 def main():
     # Lese Hook-Input
-    input_data = json.loads(sys.stdin.read())
+    try:
+        input_data = json.loads(sys.stdin.read())
+    except (json.JSONDecodeError, Exception):
+        print(json.dumps(allow()))
+        return
 
     # Prüfe ob Bash-Tool
     tool_name = input_data.get("tool_name", "")
     if tool_name != "Bash":
-        print(json.dumps({"continue": True}))
+        print(json.dumps(allow()))
         return
 
     # Hole Command
@@ -418,34 +446,22 @@ def main():
     # Commit-spezifische Checks
     if is_commit_command(command):
         # Check 0: Worktree-Enforcement
-        allowed, reason = check_worktree()
-        if not allowed:
-            print(json.dumps({
-                "continue": False,
-                "reason": reason.strip()
-            }))
+        allowed_result, reason = check_worktree()
+        if not allowed_result:
+            print(json.dumps(deny(reason.strip())))
             return
 
         # Check 1: Pending Learnings
-        allowed, reason = check_pending_learnings()
-        if not allowed:
-            print(json.dumps({
-                "continue": False,
-                "reason": reason.strip()
-            }))
+        allowed_result, reason = check_pending_learnings()
+        if not allowed_result:
+            print(json.dumps(deny(reason.strip())))
             return
 
-        # Check 2: Tests (nur Warnung)
+        # Check 2: Tests (nur Warnung — allow but with message)
         _, warning = check_tests_passed()
         if warning:
-            print(json.dumps({
-                "continue": True,
-                "systemMessage": warning.strip()
-            }))
+            print(json.dumps(allow(warning.strip())))
             return
-
-    # Allgemein: 3-Strikes Check basierend auf vorherigen Fehlern
-    # (Dieser würde von stan-track bei Fehlern aktiviert)
 
     # Automatische Status-Übergänge prüfen
     messages = []
@@ -460,14 +476,11 @@ def main():
     if done_msg:
         messages.append(done_msg)
 
-    # Output mit optionalen System-Messages
+    # Output
     if messages:
-        print(json.dumps({
-            "continue": True,
-            "systemMessage": "\n\n".join(messages)
-        }))
+        print(json.dumps(allow("\n\n".join(messages))))
     else:
-        print(json.dumps({"continue": True}))
+        print(json.dumps(allow()))
 
 
 if __name__ == "__main__":

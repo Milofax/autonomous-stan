@@ -207,7 +207,7 @@ class TestCreateCommandIntegration:
 
     def test_create_command_mentions_model_selection(self):
         """Create command should mention model selection."""
-        create_cmd = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        create_cmd = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = create_cmd.read_text()
 
         # Should mention model or auto-selection

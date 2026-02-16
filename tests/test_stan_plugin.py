@@ -160,12 +160,15 @@ class TestPluginAssets:
     """Tests for plugin assets (templates, criteria, techniques)."""
 
     def test_assets_directory_exists(self):
-        """assets directory should exist for templates, criteria, techniques."""
-        assert (PLUGIN_DIR / "assets").exists()
+        """Assets (templates, criteria, techniques) should exist at root level."""
+        # In v2, assets are at root level (not in assets/ subdir)
+        assert (PLUGIN_DIR / "criteria").exists() or (PLUGIN_DIR / "assets").exists()
 
     def test_templates_exist(self):
         """Should have template files."""
-        templates_dir = PLUGIN_DIR / "assets" / "templates"
+        templates_dir = PLUGIN_DIR / "templates"
+        if not templates_dir.exists():
+            templates_dir = PLUGIN_DIR / "assets" / "templates"
         if not templates_dir.exists():
             pytest.skip("Templates directory not yet created")
         templates = list(templates_dir.glob("*.template"))
@@ -173,7 +176,9 @@ class TestPluginAssets:
 
     def test_criteria_exist(self):
         """Should have criteria files."""
-        criteria_dir = PLUGIN_DIR / "assets" / "criteria"
+        criteria_dir = PLUGIN_DIR / "criteria"
+        if not criteria_dir.exists():
+            criteria_dir = PLUGIN_DIR / "assets" / "criteria"
         if not criteria_dir.exists():
             pytest.skip("Criteria directory not yet created")
         criteria = list(criteria_dir.glob("*.yaml"))

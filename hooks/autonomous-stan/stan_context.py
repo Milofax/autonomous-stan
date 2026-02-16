@@ -132,7 +132,11 @@ def _collect_active_criteria() -> list[str]:
 
 def main():
     # Lese Hook-Input
-    input_data = json.loads(sys.stdin.read())
+    try:
+        input_data = json.loads(sys.stdin.read())
+    except (json.JSONDecodeError, Exception):
+        print(json.dumps({"continue": True}))
+        return
 
     # Periodische Rotation (max einmal pro Tag)
     rotation_msg = None

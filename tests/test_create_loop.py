@@ -16,12 +16,12 @@ class TestCreateCommandExists:
 
     def test_create_command_exists(self):
         """Create command file should exist."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         assert cmd_file.exists(), f"Create command not found: {cmd_file}"
 
     def test_create_command_has_loop_section(self):
         """Create command should have execution loop section."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for loop-related content
@@ -30,7 +30,7 @@ class TestCreateCommandExists:
 
     def test_create_command_has_iteration_logic(self):
         """Create command should reference iteration counter."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for iteration-related content
@@ -39,7 +39,7 @@ class TestCreateCommandExists:
 
     def test_create_command_has_acceptance_criteria_check(self):
         """Create command should check acceptance criteria."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Check for acceptance criteria references
@@ -52,7 +52,7 @@ class TestLoopInstructions:
 
     def test_has_task_selection_logic(self):
         """Create command should have task selection logic (next ready task)."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention selecting/getting next task
@@ -66,7 +66,7 @@ class TestLoopInstructions:
 
     def test_has_success_path(self):
         """Create command should describe success path."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention success/completion
@@ -80,7 +80,7 @@ class TestLoopInstructions:
 
     def test_has_failure_path(self):
         """Create command should describe failure path."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention failure/error handling
@@ -94,7 +94,7 @@ class TestLoopInstructions:
 
     def test_has_perspective_shift_mention(self):
         """Create command should mention perspective shift at max iterations."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention perspective shift or similar
@@ -108,7 +108,7 @@ class TestLoopInstructions:
 
     def test_has_completion_signal(self):
         """Create command should have completion signal."""
-        cmd_file = PROJECT_ROOT / "commands" / "autonomous-stan" / "create.md"
+        cmd_file = PROJECT_ROOT / "commands" / "stan" / "create.md"
         content = cmd_file.read_text()
 
         # Should mention completion signal
