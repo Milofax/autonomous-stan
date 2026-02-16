@@ -1,107 +1,102 @@
 #!/usr/bin/env python3
 """
-Research Guard — Forces research before architecture/technology decisions.
+Research Guard — Enforces research cascade: Graphiti → Context7 → Web.
 
-PreToolUse Hook for Edit/Write/MultiEdit.
-Detects when the agent is making technology choices, architecture decisions,
-or writing configuration without having researched first.
+PreToolUse Hook for all tools.
+Detects when the agent tries to do external research and ensures the
+knowledge hierarchy is respected:
 
-The guard checks session state for evidence of research (web_search, web_fetch,
-context7 queries) before allowing edits that contain technology-specific content.
+1. Graphiti first (own knowledge base)
+2. Context7 (live docs for known libraries)
+3. Firecrawl / WebSearch / WebFetch (general web)
+
+Dynamically adapts based on which tools are actually available in the
+session (detected via register_hook pattern from taming-stan).
+
+Also tracks research activity so other hooks can verify research happened.
 """
 
 import json
 import sys
 import os
-import re
 from pathlib import Path
 
-# Patterns that indicate technology/architecture decisions
-DECISION_PATTERNS = [
-    # CSS values that should come from tools like Utopia.fyi
-    r'clamp\(\s*[\d.]+rem',
-    r'font-size:\s*[\d.]+(?:px|rem|em)',
-    # Framework config files
-    r'astro\.config',
-    r'next\.config',
-    r'vite\.config',
-    r'tailwind\.config',
-    r'tsconfig',
-    # Package choices
-    r'"dependencies"',
-    r'"devDependencies"',
-    # Architecture patterns
-    r'(?:import|from)\s+[\'"](?:react|vue|svelte|angular)',
-    # API endpoints / versions
-    r'api/v\d+',
-    r'https?://api\.',
-]
+# --- Session State (simplified from taming-stan) ---
 
-# File types that typically contain architecture decisions
-DECISION_FILES = [
-    'package.json', 'Cargo.toml', 'pyproject.toml', 'go.mod',
-    'Dockerfile', 'docker-compose', '.env',
-    'astro.config', 'next.config', 'vite.config', 'tailwind.config',
-    'tsconfig.json', 'webpack.config',
-]
-
-# Evidence that research was done (tool names from session)
-RESEARCH_EVIDENCE_TOOLS = [
-    'web_search', 'web_fetch', 'context7', 'firecrawl',
-    'WebSearch', 'WebFetch',
-]
-
-
-def check_session_for_research():
-    """Check if research tools were used in the current session."""
+def get_state_path():
     state_dir = Path(os.environ.get('STAN_STATE_DIR', '/tmp'))
-    state_file = state_dir / '.stan' / 'session_state.json'
+    return state_dir / '.stan' / 'research_state.json'
 
-    if not state_file.exists():
-        return False
-
+def read_state():
+    sp = get_state_path()
     try:
-        data = json.loads(state_file.read_text())
-        research_count = data.get('research_count', 0)
-        return research_count > 0
+        return json.loads(sp.read_text()) if sp.exists() else {}
     except (json.JSONDecodeError, Exception):
-        return False
+        return {}
+
+def write_state(key, value):
+    sp = get_state_path()
+    sp.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        state = read_state()
+        state[key] = value
+        sp.write_text(json.dumps(state, indent=2))
+    except Exception:
+        pass
+
+def append_to_list(key, value):
+    state = read_state()
+    lst = state.get(key, [])
+    if value not in lst:
+        lst.append(value)
+    write_state(key, lst)
+
+# --- Tool Detection ---
+
+# Libraries that Context7 likely has docs for
+KNOWN_LIBS = [
+    "react", "vue", "angular", "svelte", "next", "nuxt", "astro", "solid",
+    "express", "fastapi", "django", "flask", "hono", "nestjs",
+    "typescript", "node", "deno", "bun", "python",
+    "langchain", "llamaindex", "openai", "anthropic",
+    "prisma", "drizzle", "supabase", "firebase", "redis",
+    "tailwind", "bootstrap", "shadcn", "radix",
+    "pytest", "jest", "vitest", "playwright", "cypress",
+    "docker", "kubernetes", "terraform",
+    "vite", "webpack", "esbuild",
+    "zustand", "redux", "pinia",
+    "graphql", "trpc",
+]
+
+DOC_TERMS = ["docs", "documentation", "api", "guide", "tutorial", "how to",
+             "example", "reference", "config", "setup", "install"]
 
 
-def increment_research_count():
-    """Track that research was performed."""
-    state_dir = Path(os.environ.get('STAN_STATE_DIR', '/tmp'))
-    state_file = state_dir / '.stan' / 'session_state.json'
-    state_file.parent.mkdir(parents=True, exist_ok=True)
-
-    data = {}
-    if state_file.exists():
-        try:
-            data = json.loads(state_file.read_text())
-        except (json.JSONDecodeError, Exception):
-            pass
-
-    data['research_count'] = data.get('research_count', 0) + 1
-    state_file.write_text(json.dumps(data))
+def is_lib_search(query):
+    """Check if query is about a known library's docs."""
+    ql = query.lower()
+    for lib in KNOWN_LIBS:
+        if lib in ql and any(t in ql for t in DOC_TERMS):
+            return True, lib
+    return False, ""
 
 
-def is_decision_file(file_path):
-    """Check if the file typically contains architecture decisions."""
-    if not file_path:
-        return False
-    name = Path(file_path).name.lower()
-    return any(df.lower() in name for df in DECISION_FILES)
+def is_graphiti_available():
+    """Check if Graphiti MCP is registered in session."""
+    return read_state().get("graphiti_available", False)
 
 
-def contains_decision_pattern(content):
-    """Check if content contains technology/architecture decision patterns."""
-    if not content:
-        return False
-    for pattern in DECISION_PATTERNS:
-        if re.search(pattern, content, re.IGNORECASE):
-            return True
-    return False
+def is_context7_available():
+    """Check if Context7 MCP is registered in session."""
+    return read_state().get("context7_available", False)
 
+
+def graphiti_was_searched():
+    """Check if Graphiti was already searched this session."""
+    return read_state().get("graphiti_searched", False)
+
+
+# --- Output Helpers ---
 
 def allow(message=None):
     result = {
@@ -125,6 +120,8 @@ def deny(reason):
     }
 
 
+# --- Main Hook Logic ---
+
 def main():
     try:
         input_data = json.loads(sys.stdin.read())
@@ -133,48 +130,123 @@ def main():
         return
 
     tool_name = input_data.get("tool_name", "")
-
-    # Track research tool usage (PostToolUse context)
-    if tool_name in RESEARCH_EVIDENCE_TOOLS:
-        increment_research_count()
-        print(json.dumps(allow()))
-        return
-
-    # Only check Edit/Write/MultiEdit
-    if tool_name not in ("Edit", "Write", "MultiEdit"):
-        print(json.dumps(allow()))
-        return
-
     tool_input = input_data.get("tool_input", {})
-    file_path = tool_input.get("file_path", tool_input.get("path", ""))
-    new_content = tool_input.get("new_string", tool_input.get("content", ""))
 
-    # Check: Is this a decision file or does it contain decision patterns?
-    is_decision = is_decision_file(file_path) or contains_decision_pattern(new_content)
+    # --- Register available tools ---
 
-    if not is_decision:
+    # Detect MCP bridge calls to identify available tools
+    if tool_name == "mcp__mcp-funnel__bridge_tool_request":
+        bridge_tool = tool_input.get("tool", "").lower()
+        args = tool_input.get("arguments", {})
+
+        # Register Graphiti
+        if "graphiti" in bridge_tool:
+            write_state("graphiti_available", True)
+            if "search" in bridge_tool:
+                write_state("graphiti_searched", True)
+                write_state("research_done", True)
+            print(json.dumps(allow()))
+            return
+
+        # Register Context7
+        if "context7" in bridge_tool:
+            write_state("context7_available", True)
+
+            # Enforce: Graphiti first
+            if is_graphiti_available() and not graphiti_was_searched():
+                query = args.get("query", "") or args.get("topic", "")
+                print(json.dumps(deny(
+                    "📚 GRAPHITI ZUERST!\n\n"
+                    f"Du suchst nach: {query[:60]}\n"
+                    "→ Erst eigenes Wissen prüfen: search_nodes(query: \"...\")\n"
+                    "→ Dann Context7 für Live-Docs."
+                )))
+                return
+
+            # Track which libs were looked up
+            if "resolve" in bridge_tool or "library" in bridge_tool:
+                lib = args.get("libraryName", "")
+                if lib:
+                    append_to_list("context7_libs_checked", lib.lower())
+
+            write_state("research_done", True)
+            print(json.dumps(allow()))
+            return
+
+        # Register Firecrawl
+        if "firecrawl" in bridge_tool:
+            # Enforce: Graphiti first
+            if is_graphiti_available() and not graphiti_was_searched():
+                print(json.dumps(deny(
+                    "📚 GRAPHITI ZUERST!\n"
+                    "→ search_nodes(query: \"...\") bevor du extern suchst."
+                )))
+                return
+
+            # Suggest: Context7 for known libs
+            if is_context7_available():
+                query = args.get("query", "") or args.get("url", "")
+                is_lib, lib = is_lib_search(query)
+                checked = read_state().get("context7_libs_checked", [])
+                if is_lib and lib not in checked:
+                    print(json.dumps(deny(
+                        f"💡 Context7 hat Live-Docs für '{lib}'!\n"
+                        f"→ context7.resolve_library_id(libraryName: \"{lib}\")\n"
+                        "→ Dann context7.query_docs(...) für aktuelle API-Infos.\n"
+                        "Firecrawl nur wenn Context7 nicht reicht."
+                    )))
+                    return
+
+            write_state("research_done", True)
+            print(json.dumps(allow()))
+            return
+
+    # --- WebSearch / WebFetch ---
+
+    if tool_name in ("WebSearch", "web_search"):
+        # Enforce: Graphiti first
+        if is_graphiti_available() and not graphiti_was_searched():
+            query = tool_input.get("query", "")
+            print(json.dumps(deny(
+                f"📚 GRAPHITI ZUERST!\n\n"
+                f"Du suchst: \"{query[:60]}\"\n"
+                "→ Erst eigenes Wissen: search_nodes(query: \"...\")\n"
+                "→ Dann web_search."
+            )))
+            return
+
+        # Suggest: Context7 for library docs
+        if is_context7_available():
+            query = tool_input.get("query", "")
+            is_lib, lib = is_lib_search(query)
+            checked = read_state().get("context7_libs_checked", [])
+            if is_lib and lib not in checked:
+                print(json.dumps(allow(
+                    f"💡 Tipp: Context7 hat Live-Docs für '{lib}'. "
+                    "Probier context7.resolve_library_id() für aktuelle API-Infos."
+                )))
+                write_state("research_done", True)
+                return
+
+        write_state("research_done", True)
         print(json.dumps(allow()))
         return
 
-    # Check: Was research done in this session?
-    if check_session_for_research():
-        print(json.dumps(allow(
-            "✅ Research-Nachweis vorhanden. Architektur-Entscheidung erlaubt."
-        )))
+    if tool_name in ("WebFetch", "web_fetch"):
+        # Same cascade as WebSearch
+        if is_graphiti_available() and not graphiti_was_searched():
+            print(json.dumps(deny(
+                "📚 GRAPHITI ZUERST!\n"
+                "→ search_nodes(query: \"...\") bevor du extern fetchst."
+            )))
+            return
+
+        write_state("research_done", True)
+        print(json.dumps(allow()))
         return
 
-    # BLOCK: Architecture decision without research
-    print(json.dumps(deny(
-        "🔬 RESEARCH REQUIRED!\n\n"
-        "Du triffst eine Architektur-/Technologie-Entscheidung ohne vorher recherchiert zu haben.\n\n"
-        f"Datei: {file_path}\n\n"
-        "BEVOR du diese Änderung machen kannst:\n"
-        "1. Recherchiere aktuelle Best Practices (web_search, Context7, Docs)\n"
-        "2. Vergleiche mindestens 2 Ansätze\n"
-        "3. Dann erst editieren\n\n"
-        "Tools: web_search, context7 (query-docs), web_fetch\n"
-        "Dein Training-Wissen ist veraltet. Such es im Netz."
-    )))
+    # --- All other tools: pass through ---
+    print(json.dumps(allow()))
 
 
 if __name__ == "__main__":

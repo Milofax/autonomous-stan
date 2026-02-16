@@ -1,131 +1,120 @@
 #!/usr/bin/env python3
-"""Tests for research_guard hook."""
+"""Tests for research_guard hook — enforces Graphiti → Context7 → Web cascade."""
 
 import json
-import os
 import sys
 import pytest
 from pathlib import Path
 from unittest.mock import patch
 from io import StringIO
 
-# Add hooks path
 sys.path.insert(0, str(Path(__file__).parent.parent / "hooks" / "autonomous-stan"))
 import research_guard
 
 
-class TestResearchGuard:
-    """Tests for the research guard hook."""
+def get_decision(output):
+    return output["hookSpecificOutput"]["permissionDecision"]
 
-    def test_allows_normal_edit(self):
-        """Regular markdown edit should pass through."""
-        input_data = json.dumps({
-            "tool_name": "Edit",
-            "tool_input": {"file_path": "README.md", "new_string": "# Hello"}
-        })
+
+def get_reason(output):
+    return output["hookSpecificOutput"].get("permissionDecisionReason", "")
+
+
+class TestResearchCascade:
+    """Tests for the Graphiti → Context7 → Web research cascade."""
+
+    def test_allows_normal_tools(self):
+        """Non-research tools pass through."""
+        input_data = json.dumps({"tool_name": "Bash", "tool_input": {"command": "ls"}})
         with patch('sys.stdin', StringIO(input_data)):
             with patch('sys.stdout', new_callable=StringIO) as out:
                 research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
+        assert get_decision(json.loads(out.getvalue())) == "allow"
 
-    def test_blocks_config_without_research(self):
-        """Writing a config file without research should be blocked."""
-        input_data = json.dumps({
-            "tool_name": "Write",
-            "tool_input": {
-                "file_path": "astro.config.mjs",
-                "content": "export default defineConfig({})"
-            }
-        })
+    def test_blocks_websearch_when_graphiti_available(self):
+        """WebSearch blocked if Graphiti available but not searched yet."""
+        input_data = json.dumps({"tool_name": "WebSearch", "tool_input": {"query": "astro docs"}})
         with patch('sys.stdin', StringIO(input_data)):
             with patch('sys.stdout', new_callable=StringIO) as out:
-                with patch.object(research_guard, 'check_session_for_research', return_value=False):
+                with patch.object(research_guard, 'is_graphiti_available', return_value=True):
+                    with patch.object(research_guard, 'graphiti_was_searched', return_value=False):
+                        research_guard.main()
+        result = json.loads(out.getvalue())
+        assert get_decision(result) == "deny"
+        assert "GRAPHITI" in get_reason(result)
+
+    def test_allows_websearch_after_graphiti(self):
+        """WebSearch allowed after Graphiti was searched."""
+        input_data = json.dumps({"tool_name": "WebSearch", "tool_input": {"query": "astro docs"}})
+        with patch('sys.stdin', StringIO(input_data)):
+            with patch('sys.stdout', new_callable=StringIO) as out:
+                with patch.object(research_guard, 'is_graphiti_available', return_value=True):
+                    with patch.object(research_guard, 'graphiti_was_searched', return_value=True):
+                        with patch.object(research_guard, 'is_context7_available', return_value=False):
+                            research_guard.main()
+        assert get_decision(json.loads(out.getvalue())) == "allow"
+
+    def test_allows_websearch_when_no_graphiti(self):
+        """WebSearch allowed if Graphiti not available at all."""
+        input_data = json.dumps({"tool_name": "WebSearch", "tool_input": {"query": "general question"}})
+        with patch('sys.stdin', StringIO(input_data)):
+            with patch('sys.stdout', new_callable=StringIO) as out:
+                with patch.object(research_guard, 'is_graphiti_available', return_value=False):
                     research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
-        assert "RESEARCH REQUIRED" in result["hookSpecificOutput"]["permissionDecisionReason"]
+        assert get_decision(json.loads(out.getvalue())) == "allow"
 
-    def test_allows_config_with_research(self):
-        """Writing a config file AFTER research should be allowed."""
-        input_data = json.dumps({
-            "tool_name": "Write",
-            "tool_input": {
-                "file_path": "astro.config.mjs",
-                "content": "export default defineConfig({})"
-            }
-        })
+    def test_suggests_context7_for_known_lib(self):
+        """WebSearch for a known lib suggests Context7 when available."""
+        input_data = json.dumps({"tool_name": "WebSearch", "tool_input": {"query": "astro docs tutorial"}})
         with patch('sys.stdin', StringIO(input_data)):
             with patch('sys.stdout', new_callable=StringIO) as out:
-                with patch.object(research_guard, 'check_session_for_research', return_value=True):
-                    research_guard.main()
+                with patch.object(research_guard, 'is_graphiti_available', return_value=True):
+                    with patch.object(research_guard, 'graphiti_was_searched', return_value=True):
+                        with patch.object(research_guard, 'is_context7_available', return_value=True):
+                            with patch.object(research_guard, 'read_state', return_value={"graphiti_searched": True, "context7_libs_checked": []}):
+                                research_guard.main()
         result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
+        assert get_decision(result) == "allow"
+        # Should have a tip about Context7
+        msg = result["hookSpecificOutput"].get("message", "")
+        assert "Context7" in msg or "context7" in msg
 
-    def test_blocks_clamp_without_research(self):
-        """CSS clamp() values without research = blocked."""
-        input_data = json.dumps({
-            "tool_name": "Edit",
-            "tool_input": {
-                "file_path": "styles.css",
-                "new_string": "font-size: clamp(1.2rem, 2vw, 2.4rem);"
-            }
-        })
+    def test_blocks_webfetch_without_graphiti_search(self):
+        """WebFetch blocked if Graphiti available but not searched."""
+        input_data = json.dumps({"tool_name": "WebFetch", "tool_input": {"url": "https://example.com"}})
         with patch('sys.stdin', StringIO(input_data)):
             with patch('sys.stdout', new_callable=StringIO) as out:
-                with patch.object(research_guard, 'check_session_for_research', return_value=False):
-                    research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
-
-    def test_blocks_package_json_without_research(self):
-        """Adding dependencies without research = blocked."""
-        input_data = json.dumps({
-            "tool_name": "Edit",
-            "tool_input": {
-                "file_path": "package.json",
-                "new_string": '"dependencies": { "react": "^19" }'
-            }
-        })
-        with patch('sys.stdin', StringIO(input_data)):
-            with patch('sys.stdout', new_callable=StringIO) as out:
-                with patch.object(research_guard, 'check_session_for_research', return_value=False):
-                    research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
-
-    def test_allows_non_edit_tools(self):
-        """Bash, Read etc. should always pass."""
-        input_data = json.dumps({
-            "tool_name": "Bash",
-            "tool_input": {"command": "npm install"}
-        })
-        with patch('sys.stdin', StringIO(input_data)):
-            with patch('sys.stdout', new_callable=StringIO) as out:
-                research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
+                with patch.object(research_guard, 'is_graphiti_available', return_value=True):
+                    with patch.object(research_guard, 'graphiti_was_searched', return_value=False):
+                        research_guard.main()
+        assert get_decision(json.loads(out.getvalue())) == "deny"
 
     def test_handles_empty_input(self):
-        """Empty stdin should not crash."""
+        """Empty stdin gracefully handled."""
         with patch('sys.stdin', StringIO("")):
             with patch('sys.stdout', new_callable=StringIO) as out:
                 research_guard.main()
-        result = json.loads(out.getvalue())
-        assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
+        assert get_decision(json.loads(out.getvalue())) == "allow"
 
-    def test_detects_decision_files(self):
-        """Known config files should be detected."""
-        assert research_guard.is_decision_file("package.json")
-        assert research_guard.is_decision_file("src/astro.config.mjs")
-        assert research_guard.is_decision_file("Dockerfile")
-        assert not research_guard.is_decision_file("README.md")
-        assert not research_guard.is_decision_file("src/app.ts")
+    def test_is_lib_search_detection(self):
+        """Known library + doc term = library search."""
+        assert research_guard.is_lib_search("astro docs tutorial")[0]
+        assert research_guard.is_lib_search("tailwind css documentation")[0]
+        assert research_guard.is_lib_search("react api reference")[0]
+        assert not research_guard.is_lib_search("weather today")[0]
+        assert not research_guard.is_lib_search("best restaurants")[0]
 
-    def test_detects_decision_patterns(self):
-        """Technology choice patterns should be detected."""
-        assert research_guard.contains_decision_pattern('font-size: clamp(1.5rem, 2vw, 3rem);')
-        assert research_guard.contains_decision_pattern('import React from "react"')
-        assert research_guard.contains_decision_pattern('"dependencies": {}')
-        assert not research_guard.contains_decision_pattern('console.log("hello")')
-        assert not research_guard.contains_decision_pattern('# Just a comment')
+    def test_graphiti_search_registers(self):
+        """MCP bridge call to graphiti.search registers graphiti as available+searched."""
+        input_data = json.dumps({
+            "tool_name": "mcp__mcp-funnel__bridge_tool_request",
+            "tool_input": {"tool": "graphiti.search_nodes", "arguments": {"query": "test"}}
+        })
+        with patch('sys.stdin', StringIO(input_data)):
+            with patch('sys.stdout', new_callable=StringIO) as out:
+                with patch.object(research_guard, 'write_state') as mock_write:
+                    research_guard.main()
+        # Should have called write_state for graphiti_available and graphiti_searched
+        calls = [c[0] for c in mock_write.call_args_list]
+        assert ("graphiti_available", True) in calls
+        assert ("graphiti_searched", True) in calls
