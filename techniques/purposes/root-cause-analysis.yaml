@@ -7,10 +7,11 @@ description: |
   of a problem, rather than just treating symptoms.
 
 techniques:
-  - five-whys          # Quick, iterative, good for simple chains
-  - fishbone-diagram   # Visual, categorized, good for complex systems
-  - after-action-review # Structured reflection after event
-  - socratic-questioning # Uncover assumptions through questions
+  - five-whys              # Quick, iterative, good for simple chains
+  - systematic-debugging   # 4-phase process, enforced by loop_breaker hook
+  - fishbone-diagram       # Visual, categorized, good for complex systems
+  - after-action-review    # Structured reflection after event
+  - socratic-questioning   # Uncover assumptions through questions
 
 triggers:
   - "Error occurs repeatedly"

@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-context.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_context.py",
             "timeout": 10
           }
         ]
@@ -19,7 +19,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-gate.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_gate.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/git_guard.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/credential_guard.py",
             "timeout": 10
           }
         ]
@@ -31,8 +41,44 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-track.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_track.py",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/loop_breaker.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/loop_breaker.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are the STAN EVALUATOR - an independent quality checker.\n\nThe main agent just edited a file. Analyze critically:\n\n1. If a checkbox was marked complete: Is the criterion ACTUALLY met? Look for real evidence, not just the checkbox state.\n2. If code was written: Is it complete? Any TODOs, placeholder comments, missing imports, unfinished logic?\n3. If acceptance criteria were checked: Does the actual implementation genuinely match?\n4. If a document was written: Is it concrete and actionable? Watch for vague statements, missing specifics, aspirational language without substance.\n\nBe skeptical. The main agent has self-serving bias and tends to check boxes prematurely.\n\nCommon bias patterns:\n- Checking boxes without actual implementation\n- \"Good enough\" mentality\n- Overlooking edge cases\n- Assuming intent equals execution\n\nIf you find issues, state them specifically so the agent can fix them.\nIf the edit is legitimate and complete, confirm briefly.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are the STAN GATE - final quality barrier before task completion.\n\nReview the transcript for this session. Before allowing completion, verify:\n\n1. ALL acceptance criteria are genuinely met (not just checked off)\n2. No TODO comments or incomplete implementations remain\n3. If tests were required, they must have passed (look for test output in transcript)\n4. Document quality matches the stated requirements\n5. If a PRD was created: Does it have concrete goals, measurable criteria, and real evidence?\n6. If code was written: Is it tested, linted, and complete?\n7. If research was done: Are sources cited and conclusions supported?\n\nThis is NOT just for code. Check documents, plans, research - everything the agent produced.\n\nIf everything is genuinely complete, confirm approval.\nIf issues remain, list them specifically so the agent can address them before finishing.",
+            "timeout": 30
           }
         ]
       }

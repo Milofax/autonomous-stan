@@ -1,0 +1,90 @@
+id: systematic-debugging
+name: "Systematic Debugging"
+description: "4-phase debugging process. NO fixes without root cause. 3+ failed fixes = question architecture."
+
+steps:
+  - "Phase 1 — Root Cause Investigation (MANDATORY before any fix):"
+  - "  Read error messages carefully — don't skip past them"
+  - "  Reproduce consistently — can you trigger it reliably?"
+  - "  Check recent changes — git diff, new dependencies, config"
+  - "  Gather evidence in multi-component systems — log at each boundary"
+  - "  Trace data flow — where does the bad value originate?"
+  - "Phase 2 — Pattern Analysis:"
+  - "  Find working examples in same codebase"
+  - "  Compare against references — read completely, don't skim"
+  - "  Identify ALL differences, however small"
+  - "  Understand dependencies, settings, assumptions"
+  - "Phase 3 — Hypothesis Testing:"
+  - "  Form SINGLE hypothesis: 'X is the root cause because Y'"
+  - "  Make SMALLEST possible change to test"
+  - "  One variable at a time — don't fix multiple things at once"
+  - "  Didn't work? NEW hypothesis, don't stack fixes"
+  - "Phase 4 — Implementation:"
+  - "  Create failing test case FIRST"
+  - "  Implement SINGLE fix addressing root cause"
+  - "  Verify: test passes, no other tests broken"
+  - "  If 3+ fixes failed: STOP → Question Architecture (see escalation)"
+
+purposes:
+  - root-cause-analysis
+  - code-review
+  - structured-problem-solving
+
+aliases:
+  - "4-Phase Debugging"
+  - "Root Cause First"
+
+source: "Superpowers Framework (claude-superpowers)"
+duration: "15-60 min"
+participants: "Solo"
+
+examples:
+  - situation: "Test fails after 3 fix attempts"
+    application: |
+      STOP. Don't attempt fix #4.
+      1. Each fix revealed new problem in different place → architectural issue
+      2. Fixes required "massive refactoring" → wrong pattern
+      3. Each fix created new symptoms elsewhere → shared state/coupling
+      → Discuss with human partner before continuing
+
+when_to_use:
+  - "Any bug, test failure, or unexpected behavior"
+  - "ESPECIALLY under time pressure (rushing = thrashing)"
+  - "After 'just one quick fix' seems obvious"
+  - "After 2+ failed fix attempts"
+
+when_not:
+  - "Typos and formatting issues"
+  - "Known solutions (documented fix exists)"
+
+rationalization_table:
+  - excuse: "Issue is simple, don't need process"
+    reality: "Simple issues have root causes too. Process is fast for simple bugs."
+  - excuse: "Emergency, no time for process"
+    reality: "Systematic debugging is FASTER than guess-and-check thrashing."
+  - excuse: "Just try this first, then investigate"
+    reality: "First fix sets the pattern. Do it right from the start."
+  - excuse: "I see the problem, let me fix it"
+    reality: "Seeing symptoms ≠ understanding root cause."
+  - excuse: "One more fix attempt (after 2+ failures)"
+    reality: "3+ failures = architectural problem. Question pattern, don't fix again."
+
+escalation: |
+  If 3+ fixes failed, each revealing new problems:
+  → STOP. This is NOT a failed hypothesis. This is wrong architecture.
+  → Question fundamentals: Is this pattern sound? Are we stuck through inertia?
+  → Discuss with human partner before attempting more fixes.
+  
+  Integration with loop_breaker.py:
+  The Loop Breaker hook detects this pattern mechanically (3x same file + test fail)
+  and injects this technique's Phase 1 as a system message.
+
+related:
+  - five-whys
+  - fishbone-diagram
+  - first-principles
+
+tags:
+  - debugging
+  - analysis
+  - quality

@@ -31,7 +31,7 @@ TEST_PATTERNS = [
     r'^yarn\s+(?:run\s+)?test',
     r'^pnpm\s+(?:run\s+)?test',
     r'^pytest',
-    r'^python\s+-m\s+pytest',
+    r'^python[3]?\s+-m\s+pytest',
     r'^cargo\s+test',
     r'^go\s+test',
     r'^jest',

@@ -1,7 +1,7 @@
 {
   "name": "autonomous-stan",
-  "version": "0.1.0",
-  "description": "Autonomous workflow framework with modular thinking tools for Claude Code. Templates, Criteria, Techniques - together a stringent workflow, individually usable thinking tools.",
+  "version": "2.0.0",
+  "description": "Autonomous workflow framework with modular thinking tools for Claude Code. Templates, Criteria, Techniques - together a stringent workflow, individually usable thinking tools. Not just for coding - for documents, research, decisions, and any creative work.",
   "author": {
     "name": "Milofax",
     "url": "https://github.com/Milofax"
@@ -11,6 +11,10 @@
     "type": "git",
     "url": "https://github.com/Milofax/autonomous-stan.git"
   },
+  "commands": "commands/stan",
+  "hooks": "hooks/hooks.json",
+  "skills": "skills",
+  "rules": "rules",
   "license": "MIT",
   "keywords": [
     "workflow",
@@ -20,6 +24,9 @@
     "techniques",
     "prd",
     "planning",
+    "evaluation",
+    "quality-gates",
+    "thinking-tools",
     "claude-code"
   ]
 }
