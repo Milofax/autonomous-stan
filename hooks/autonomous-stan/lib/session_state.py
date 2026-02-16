@@ -1,160 +1,189 @@
 #!/usr/bin/env python3
-"""
-STAN Session State - Persistent state for a session
-
-Storage location: .stan/session.json (in project directory)
-Persists across sessions for continuity.
-"""
+"""Session State Management for STAN hooks."""
 
 import json
-import hashlib
 import os
+import hashlib
 from pathlib import Path
 from datetime import datetime
 from typing import Any, Optional
 
+# Session file location
+SESSION_DIR = Path("/tmp")
+
+
+def _get_session_id() -> str:
+    """Generate a session ID based on CWD and parent PID."""
+    cwd = os.getcwd()
+    ppid = os.getppid()
+    key = f"{cwd}:{ppid}"
+    return hashlib.md5(key.encode()).hexdigest()[:12]
+
 
 def get_session_file() -> Path:
-    """Get session file path in .stan/ directory."""
-    cwd = Path(os.getcwd())
-    stan_dir = cwd / ".stan"
-    # Create .stan directory if it doesn't exist
-    stan_dir.mkdir(exist_ok=True)
-    return stan_dir / "session.json"
+    """Get path to current session state file."""
+    session_id = _get_session_id()
+    return SESSION_DIR / f"stan-session-{session_id}.json"
 
 
-def get_old_session_file() -> Path:
-    """Get old-style session file path in /tmp/ (for migration)."""
-    cwd = os.getcwd()
-    cwd_hash = hashlib.md5(cwd.encode()).hexdigest()[:8]
-    return Path(f"/tmp/claude-stan-session-{cwd_hash}.json")
-
-
-def migrate_session():
-    """Migrate session data from old /tmp/ location to .stan/."""
-    old_file = get_old_session_file()
-    new_file = get_session_file()
-
-    # Only migrate if old exists and new doesn't
-    if old_file.exists() and not new_file.exists():
-        try:
-            old_data = json.loads(old_file.read_text())
-            new_file.write_text(json.dumps(old_data, indent=2))
-            old_file.unlink()  # Remove old file after successful migration
-        except (json.JSONDecodeError, IOError):
-            pass  # Ignore errors, just use new location
-
-
-def load_session() -> dict:
-    """Load session state or create new one. Migrates old sessions automatically."""
-    # Try to migrate old session from /tmp/ if it exists
-    migrate_session()
-
+def _load_state() -> dict:
+    """Load session state from file."""
     session_file = get_session_file()
+    if not session_file.exists():
+        return _create_default_state()
 
-    if session_file.exists():
-        try:
-            with open(session_file, "r") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            pass
+    try:
+        with open(session_file, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return _create_default_state()
 
-    # Neue Session
+
+def _save_state(state: dict) -> None:
+    """Save session state to file."""
+    session_file = get_session_file()
+    with open(session_file, "w") as f:
+        json.dump(state, f, indent=2, default=str)
+
+
+def _create_default_state() -> dict:
+    """Create default session state."""
     return {
-        "created_at": datetime.now().isoformat(),
-        "cwd": os.getcwd(),
+        "session_id": _get_session_id(),
+        "started_at": datetime.now().isoformat(),
         "test_history": [],
         "pending_learnings": [],
         "error_counts": {},
-        "phase_changes": []
+        "last_error_type": None,
+        "iteration_count": 0,
+        "current_task": None,
     }
-
-
-def save_session(state: dict):
-    """Speichere Session State."""
-    session_file = get_session_file()
-    state["last_updated"] = datetime.now().isoformat()
-    with open(session_file, "w") as f:
-        json.dump(state, f, indent=2)
 
 
 def get(key: str, default: Any = None) -> Any:
-    """Hole Wert aus Session."""
-    state = load_session()
+    """Get a value from session state."""
+    state = _load_state()
     return state.get(key, default)
 
 
-def set(key: str, value: Any):
-    """Setze Wert in Session."""
-    state = load_session()
+def set(key: str, value: Any) -> None:
+    """Set a value in session state."""
+    state = _load_state()
     state[key] = value
-    save_session(state)
+    _save_state(state)
 
 
-def append_to(key: str, value: Any):
-    """Füge Wert zu Liste hinzu."""
-    state = load_session()
-    if key not in state:
-        state[key] = []
-    state[key].append(value)
-    save_session(state)
+def record_test_result(command: str, exit_code: int) -> dict:
+    """
+    Record a test result and detect red-to-green transitions.
 
+    Args:
+        command: The test command that was run
+        exit_code: Exit code (0 = passed, non-zero = failed)
 
-def record_test_result(command: str, exit_code: int):
-    """Speichere Test-Ergebnis und erkenne ROT→GRÜN."""
-    state = load_session()
+    Returns:
+        Dict with 'passed' and 'red_to_green' keys
+    """
+    state = _load_state()
     history = state.get("test_history", [])
 
-    result = {
-        "command": command,
-        "exit_code": exit_code,
-        "timestamp": datetime.now().isoformat(),
-        "passed": exit_code == 0
-    }
+    passed = exit_code == 0
 
-    # Check for ROT→GRÜN
+    # Check for red-to-green
     red_to_green = False
-    if exit_code == 0 and history:
-        # Finde letzten Test mit gleichem Command
+    if passed and history:
+        # Look for previous run of same command
         for prev in reversed(history):
-            if prev["command"] == command:
-                if not prev["passed"]:
+            if prev.get("command") == command:
+                if not prev.get("passed"):
                     red_to_green = True
                 break
 
-    result["red_to_green"] = red_to_green
-    history.append(result)
+    # Add to history
+    history.append({
+        "command": command,
+        "exit_code": exit_code,
+        "passed": passed,
+        "timestamp": datetime.now().isoformat(),
+    })
 
-    # Behalte nur letzte 20 Einträge
-    state["test_history"] = history[-20:]
-    save_session(state)
+    # Keep last 100 entries
+    state["test_history"] = history[-100:]
+    _save_state(state)
 
-    return result
+    return {
+        "passed": passed,
+        "red_to_green": red_to_green,
+    }
 
 
-def add_pending_learning(content: str, context: str):
-    """Füge pending Learning hinzu (muss vor Commit gespeichert werden)."""
-    state = load_session()
+def get_last_test_result(command: Optional[str] = None) -> Optional[dict]:
+    """
+    Get the last test result.
+
+    Args:
+        command: Optional command to filter by
+
+    Returns:
+        Last test result or None
+    """
+    history = get("test_history", [])
+    if not history:
+        return None
+
+    if command:
+        for entry in reversed(history):
+            if entry.get("command") == command:
+                return entry
+        return None
+
+    return history[-1]
+
+
+def add_pending_learning(content: str, context: str = "") -> None:
+    """
+    Add a pending learning to be saved later.
+
+    Args:
+        content: Learning content
+        context: Additional context
+    """
+    state = _load_state()
     pending = state.get("pending_learnings", [])
 
     pending.append({
         "content": content,
         "context": context,
-        "created_at": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "saved": False,
     })
 
     state["pending_learnings"] = pending
-    save_session(state)
+    _save_state(state)
 
 
-def get_pending_learnings() -> list:
-    """Hole alle pending Learnings."""
-    return get("pending_learnings", [])
+def get_pending_learnings() -> list[dict]:
+    """Get all pending (unsaved) learnings."""
+    pending = get("pending_learnings", [])
+    return [l for l in pending if not l.get("saved")]
 
 
-def clear_pending_learnings():
-    """Lösche alle pending Learnings (nach Speichern)."""
-    set("pending_learnings", [])
+def mark_learning_saved(index: int) -> None:
+    """Mark a learning as saved."""
+    state = _load_state()
+    pending = state.get("pending_learnings", [])
+
+    if 0 <= index < len(pending):
+        pending[index]["saved"] = True
+        state["pending_learnings"] = pending
+        _save_state(state)
+
+
+def clear_pending_learnings() -> None:
+    """Clear all pending learnings."""
+    state = _load_state()
+    state["pending_learnings"] = []
+    _save_state(state)
 
 
 def save_pending_learnings() -> int:
@@ -182,36 +211,49 @@ def save_pending_learnings() -> int:
 
 
 def increment_error(error_type: str) -> int:
-    """Zähle Fehler hoch, return neue Anzahl."""
-    state = load_session()
+    """
+    Increment error counter for a type.
+
+    Args:
+        error_type: Type of error
+
+    Returns:
+        New count for this error type
+    """
+    state = _load_state()
     counts = state.get("error_counts", {})
+
     counts[error_type] = counts.get(error_type, 0) + 1
     state["error_counts"] = counts
-    save_session(state)
+    state["last_error_type"] = error_type
+    _save_state(state)
+
     return counts[error_type]
 
 
 def get_error_count(error_type: str) -> int:
-    """Hole aktuelle Fehleranzahl."""
+    """Get error count for a type."""
     counts = get("error_counts", {})
     return counts.get(error_type, 0)
 
 
-def reset_error_count(error_type: str):
-    """Setze Fehleranzahl zurück."""
-    state = load_session()
+def reset_error_count(error_type: str) -> None:
+    """Reset error count for a type."""
+    state = _load_state()
     counts = state.get("error_counts", {})
+
     if error_type in counts:
         del counts[error_type]
-    state["error_counts"] = counts
-    save_session(state)
+        state["error_counts"] = counts
+        _save_state(state)
 
 
-def clear_session():
-    """Lösche Session-Datei."""
-    session_file = get_session_file()
-    if session_file.exists():
-        session_file.unlink()
+def reset_all_errors() -> None:
+    """Reset all error counts."""
+    state = _load_state()
+    state["error_counts"] = {}
+    state["last_error_type"] = None
+    _save_state(state)
 
 
 def get_iteration_count() -> int:
@@ -220,27 +262,39 @@ def get_iteration_count() -> int:
 
 
 def increment_iteration() -> int:
-    """Increment iteration counter."""
-    state = load_session()
+    """
+    Increment iteration counter.
+
+    Returns:
+        New iteration count
+    """
+    state = _load_state()
     count = state.get("iteration_count", 0) + 1
     state["iteration_count"] = count
-    save_session(state)
+    _save_state(state)
     return count
 
 
-def reset_iteration_count():
-    """Reset iteration counter."""
-    set("iteration_count", 0)
+def reset_iteration_count() -> None:
+    """Reset iteration counter (e.g., when task changes)."""
+    state = _load_state()
+    state["iteration_count"] = 0
+    _save_state(state)
 
 
-def set_current_task(task_id: str | None):
-    """Set current task, reset iteration on change."""
-    state = load_session()
+def set_current_task(task_id: str | None) -> None:
+    """
+    Set current task being worked on.
+
+    Resets iteration count when task changes.
+    """
+    state = _load_state()
     current = state.get("current_task")
+
     if current != task_id:
         state["current_task"] = task_id
-        state["iteration_count"] = 0
-        save_session(state)
+        state["iteration_count"] = 0  # Reset on task change
+        _save_state(state)
 
 
 def get_current_task() -> str | None:
