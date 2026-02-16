@@ -2,248 +2,111 @@
 
 **Autonomes Workflow-Framework mit modularen Denkwerkzeugen für Claude Code.**
 
-Templates, Criteria, Techniques - zusammen ein stringenter Workflow, einzeln nutzbare Denkwerkzeuge.
+Templates, Criteria, Techniques — zusammen ein stringenter Workflow, einzeln nutzbare Denkwerkzeuge. Nicht nur für Code — für Dokumente, Recherche, Konzepte, Entscheidungen.
 
-## Was ist autonomous-stan?
-
-autonomous-stan ermöglicht **autonome, qualitativ hochwertige Implementierung** mit wenig Korrektur. Das Framework besteht aus modularen Komponenten die zusammen oder einzeln funktionieren:
-
-- **Templates** - Wiederverwendbare Dokument-Vorlagen (PRD, Plan, Style Guide)
-- **Criteria** - Qualitätsprüfungen als YAML, verknüpfbar mit Templates
-- **Techniques** - 21 Denktechniken, organisiert nach 9 Purposes
-- **Phasen** - DEFINE → PLAN → CREATE Workflow mit Enforcement
-- **Learnings** - Lokales Arbeitsgedächtnis + optionales Langzeitgedächtnis
-
-Das Kernprinzip: **Hooks enforce Rules. Der User muss sich nichts merken.**
-
-## Features
-
-### Modulare Templates
-
-Erstelle eigene Dokument-Templates mit Frontmatter.
-Templates verknüpfen sich mit Criteria - bei jedem Dokument werden automatisch die relevanten Quality Gates geprüft.
-
-```yaml
----
-type: prd
-criteria:
-  - goal-quality
-  - text-quality
----
-```
-
-### Flexible Criteria
-
-Definiere Qualitätsprüfungen als atomare YAML-Dateien.
-Ein Criteria kann von mehreren Templates genutzt werden. Criteria werden zu Checklisten - alle required Checks müssen bestehen.
-
-```yaml
-name: Goal Quality
-checks:
-  - id: concrete
-    question: "Is the goal specific and measurable?"
-    required: true
-```
-
-### Purpose-basierte Techniques
-
-21 Denktechniken, organisiert nach 9 Purposes (Einstiegspunkten):
-
-| Purpose | Frage |
-|---------|-------|
-| Root Cause Analysis | Warum passiert das? |
-| Ideation | Welche Möglichkeiten gibt es? |
-| Perspective Shift | Wie sehen andere das? |
-| Structured Problem Solving | Wie zerlege ich das systematisch? |
-| Decision Making | Welche Option wähle ich? |
-
-`/stan think` funktioniert auch standalone - ohne Projekt, ohne Workflow.
-
-### Phasen-Workflow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   [DEFINE] ──────────> [PLAN] ──────────> [CREATE]         │
-│   Interaktiv           Interaktiv         Autonom           │
-│   PRD erstellen        Tasks planen       Ausführen         │
-│                                                             │
-│   ▲                                           │             │
-│   └───────── Reconciliation ◄─────────────────┘             │
-│              (bei fundamentalen Änderungen)                 │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-Phasen-Übergänge werden durch Hooks enforced:
-- DEFINE → PLAN: PRD muss `status: approved` haben
-- PLAN → CREATE: Mindestens 1 Task muss `status: ready` haben
-
-### Parallelisierung
-
-autonomous-stan unterstützt parallele Ausführung:
-
-- **Git Worktrees** für isolierte Feature-Branches
-- **Subagents** für parallele Task-Bearbeitung
-- **Dependency-Tracking** verhindert Konflikte
-
-Tasks mit verschiedenen Dateien können parallel bearbeitet werden. Der Hauptagent orchestriert.
-
-### Two-System Learnings
-
-| System | Zweck | Wann |
-|--------|-------|------|
-| Lokal (`~/.stan/learnings/`) | Arbeitsgedächtnis, schnell | Während der Arbeit |
-| Graphiti (optional) | Langzeitgedächtnis, kuratiert | Am Projekt-Ende |
-
-Learnings werden automatisch erkannt (Test ROT→GRÜN) und müssen vor Commit gespeichert werden.
-
-## Core Concepts
-
-### Entity Model
-
-autonomous-stan besteht aus klar definierten Entitäten:
-
-```
-Template ──1:n──> Document              Criteria ──1:n──> Check
-    │                │                      ▲
-    └── criteria ────┴──────────────────────┘
-
-Task ─── acceptance_criteria ───> {criteria-name} oder "free text"
-    └── dependencies ───> Task
-
-Purpose ──n:m──> Technique
-```
-
-### Die Entitäten
-
-| Entität | Was | Wo |
-|---------|-----|-----|
-| **Template** | Vorlage für Dokumente | `templates/*.template` |
-| **Document** | Erstelltes Dokument (PRD, Plan) | `docs/*.md` |
-| **Task** | Arbeitseinheit mit Acceptance Criteria | `.stan/tasks.jsonl` |
-| **Criteria** | YAML mit Qualitätsprüfungen (Checks) | `criteria/*.yaml` |
-| **Purpose** | Einstiegspunkt für Denkmethoden | `techniques/purposes/*.yaml` |
-| **Technique** | Konkrete Denkmethode (Five Whys, etc.) | `techniques/*.yaml` |
-
-### Zwei Ebenen von Criteria
-
-| Ebene | Syntax | Prüft |
-|-------|--------|-------|
-| **Document-level** | Frontmatter: `criteria: [text-quality]` | Ganzes Dokument |
-| **Task-level** | `"Tests pass {code-quality}"` | Implementierung |
-
-**Task Acceptance Criteria** können sein:
-- `"Text {criteria-name}"` → Lädt YAML, Evaluator-Model aus YAML
-- `"Freier Text"` → Success Criteria, immer Sonnet (semantisch)
-
-→ Vollständige Syntax: [docs/plan.md - Entity Syntax](docs/plan.md#entity-syntax-specifications)
-
-## Standalone-Nutzung
-
-Jede Komponente funktioniert auch einzeln:
-
-| Komponente | Standalone-Nutzung |
-|------------|-------------------|
-| `/stan think` | Denktechniken für jedes Problem - ohne Projekt |
-| `/stan build-template` | Template erstellen - ohne Phase-Workflow |
-| `/stan build-criteria` | Criteria erstellen - ohne Projekt |
-| Templates | Als Markdown-Vorlagen in jedem Kontext |
-| Criteria | Als manuelle Checklisten |
-| Techniques | Als YAML-Dateien lesbar, manuell anwendbar |
-
-## Pro Tips: Denkwerkzeuge nutzen
-
-### "Nutze Techniques"
-
-Steckst du fest? `/stan think` zeigt passende Denktechniken.
-Funktioniert für JEDES Problem - Code, Text, Entscheidungen, Architektur.
-
-### "Nutze Purpose als Einstieg"
-
-Weißt du nicht wo anfangen?
-- "Warum passiert das?" → Root Cause Analysis
-- "Welche Optionen habe ich?" → Ideation
-- "Wie sieht das aus Sicht X aus?" → Perspective Shift
-
-### "Gedanklicher Criteria-Check"
-
-Bevor du etwas abschließt:
-> "Wenn ich Criteria dafür anlegen würde - würde das bestehen?"
-
-Das funktioniert für PRDs, Code, Texte, Entscheidungen - alles.
-
-## Quick Start
+## Installation
 
 ```bash
-# Repository klonen
-git clone https://github.com/Milofax/autonomous-stan.git
-cd autonomous-stan
-
-# Submodules initialisieren
-git submodule update --init --recursive
+claude plugin install github:Milofax/autonomous-stan
 ```
 
-### Erster Schritt
+## Was es macht
 
-```bash
-# In einem Projekt mit autonomous-stan:
-/stan init           # Projekt initialisieren
-/stan define         # PRD erstellen
-/stan plan           # Tasks ableiten
-/stan create         # Autonom ausführen
-```
+autonomous-stan macht Claude zu einem echten **Denk- und Arbeitspartner**:
 
-Oder standalone:
-```bash
-/stan think          # Bei jedem Problem - Techniques nutzen
-```
+1. **Dialog erst** — Versteht was gebraucht wird (`/stan define`)
+2. **Plan dann** — Strukturierter Plan basierend auf Recherche (`/stan plan`)
+3. **Autonom umsetzen** — Zuverlässig mit echtem TDD (`/stan create`)
+4. **Selbstkritisch prüfen** — Unabhängiger Evaluator gegen Self-Serving Bias
 
-## Skills
+## Die 8 Hooks
 
-| Skill | Beschreibung |
-|-------|--------------|
-| `/stan init` | Projekt starten, stan.md erstellen |
-| `/stan define` | DEFINE Phase - PRD, Style Guide, etc. |
-| `/stan plan` | PLAN Phase - Tasks ableiten |
-| `/stan create` | CREATE Phase - autonom ausführen |
-| `/stan statusupdate` | Status anzeigen + manuell ändern |
-| `/stan healthcheck` | Konsistenz prüfen |
-| `/stan think` | Denktechniken anwenden (standalone) |
-| `/stan build-template` | Template interaktiv bauen |
-| `/stan build-criteria` | Criteria interaktiv bauen |
-| `/stan ready` | Tasks ohne Blocker anzeigen |
-| `/stan complete` | Projekt abschließen (Land the Plane) |
+| Hook | Event | Was es macht |
+|------|-------|-------------|
+| **stan_context** | UserPromptSubmit | Injiziert Phase, Learnings, aktive Criteria |
+| **stan_gate** | PreToolUse(Bash) | Phase-Enforcement: kein Build ohne Plan |
+| **git_guard** | PreToolUse(Bash) | Conventional Commits, Branch Protection |
+| **credential_guard** | PreToolUse(Bash) | 905 Secret-Patterns, 3-Strikes |
+| **stan_track** | PostToolUse(Bash) | Test-Tracking, ROT→GRÜN Erkennung |
+| **loop_breaker** | PostToolUse(Bash+Edit) | Edit→Test Loop Detection → Eskalation |
+| **Evaluator** | PostToolUse(Edit) | Unabhängiger Quality-Check (Prompt-Hook) |
+| **Final Gate** | Stop | Completion-Verification (Prompt-Hook) |
 
-## Struktur
+## Slash-Commands
 
 ```
-autonomous-stan/
-├── .claude/
-│   ├── hooks/stan/        # Enforcement Hooks
-│   ├── commands/stan/     # /stan Skills
-│   └── rules/             # Verhaltensregeln
-├── criteria/              # Qualitätskriterien (YAML)
-├── templates/             # Dokument-Templates (Markdown)
-├── techniques/            # Denktechniken (YAML)
-│   └── purposes/          # 9 Purpose-Einstiegspunkte
-├── .stan/                 # Session State + Tasks
-│   ├── tasks.jsonl        # Source of Truth für Tasks
-│   └── session.json       # Persistent Session State
-└── docs/
-    ├── plan.md            # Implementierungsplan
-    └── tasks.md           # Generated from JSONL
+/stan init       → Projekt initialisieren
+/stan define     → PRD erstellen (Dialog)
+/stan plan       → Tasks ableiten
+/stan create     → Autonom umsetzen
+/stan think      → Thinking-Technique anwenden
+/stan complete   → Task abschließen
+/stan ready      → Nächsten Task starten
+/stan healthcheck → Selbstdiagnose
 ```
 
-## Dokumentation
+## Modulare Denkwerkzeuge
 
-- [Implementierungsplan](docs/plan.md)
-- [Tasks](docs/tasks.md)
+### 23 Criteria (YAML)
+Qualitätschecklisten: `goal-is-smart`, `code-quality`, `text-quality`, `ui-is-responsive`, ...
 
-## Status
+### 22 Techniques (YAML)
+Denkwerkzeuge: Five Whys, Six Thinking Hats, First Principles, Pre-Mortem, Systematic Debugging, ...
 
-🚧 **Initial Development (0.x.x)**
+### 9 Purposes
+Einstiegspunkte: Root Cause Analysis, Decision Making, Ideation, Perspective Shift, ...
+
+Purpose → empfiehlt Technique → Steps + Escalation.
+
+## Loop Detection (NEU in v2)
+
+Kein Framework hatte bisher echte Denk-Loop-Erkennung. autonomous-stan trackt Edit→Test-Paare:
+
+- 3x gleiche Datei editiert + Test immer noch rot → **Denk-Loop erkannt**
+- Automatische Eskalation: "STOP. Question your approach. Apply Systematic Debugging Phase 1."
+
+Inspiriert von Superpowers' "3+ fixes failed = question architecture", aber mechanisch erzwungen.
+
+## Credential Guard
+
+905 Regex-Patterns aus [secrets-patterns-db](https://github.com/mazen160/secrets-patterns-db). Blockiert `git add`/`git commit` wenn API-Keys, Tokens oder Private Keys in staged Files.
+
+## Evaluator (Anti Self-Serving Bias)
+
+Prompt-Hooks bei jedem Edit und vor Completion. Ein unabhängiger Evaluator prüft:
+- Sind Checkboxen ECHT erfüllt oder nur abgehakt?
+- Ist der Code FERTIG oder stehen noch TODOs drin?
+- Ist das Dokument KONKRET oder nur Wunschdenken?
+
+## Architektur-Entscheidungen
+
+**Was drin ist (und warum):**
+- Evaluator-Hooks (Superpowers) — bekämpft Self-Serving Bias mechanisch
+- Credential Guard (taming-stan) — 905 Patterns, bewährt
+- Loop Breaker (NEU) — einziges Framework mit Denk-Loop-Erkennung
+- Git Guard (taming-stan) — Conventional Commits erzwingen
+- Systematic Debugging (Superpowers) — 4-Phasen-Prozess mit Anti-Rationalization
+
+**Was NICHT drin ist (und warum):**
+- Multi-Agent Personas — ein LLM das Rollen spielt ≠ echte Perspektiven
+- Session-End Hook — gibt es in Claude Code nicht
+- TUI Visualisierung — 15h Aufwand, Markdown Tasks reichen
+- 7 Review-Agents — Overkill, Two-Stage Review deckt 90% ab
+- Eval-Driven Development — pass@k elegant, aber Criteria reicht im Alltag
+
+## Synthese aus 10 Frameworks
+
+Analysiert und die besten Ideen integriert:
+- [claude-superpowers](https://github.com/mbenhamd/claude-superpowers) — Systematic Debugging, Verification
+- [taming-stan](https://github.com/Milofax/taming-stan) — Credential Guard, Git Guard
+- [Ralph](https://github.com/ralphthe/ralph) — Fresh Context, Completion Signal
+- [GSD](https://github.com/wonderwhy-er/gsd-claude-code) — Context Rot Prevention
+- [BMAD Method](https://github.com/bmad-method/bmad-method) — Scale-Adaptive Levels
+- [Everything Claude Code](https://github.com/pashpashpash/everything-claude-code) — Verification Loop
+- [PRPs](https://github.com/aarontravass/prps-agentic-eng) — Structured Reviews
+- [Beads](https://github.com/beads-ai/beads) — JSONL Task Schema
+- OpenClaw Architecture — Multi-Agent Learnings, Memory Patterns
 
 ## Lizenz
 
-MIT License - siehe [LICENSE](LICENSE)
+MIT
