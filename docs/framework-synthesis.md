@@ -1,9 +1,6 @@
 # Framework-Synthese: autonomous-stan v2
 
-**Datum:** 2026-02-16  
-**Autor:** STAN  
-**Basiert auf:** 10 Detail-Analysen + erste Synthese  
-**Zweck:** Finales Entscheidungsdokument für autonomous-stan v2
+**Datum:** 2026-02-16 | **Autor:** STAN | **Basiert auf:** 10 Detail-Analysen + erste Synthese
 
 ---
 
@@ -11,302 +8,131 @@
 
 ### Die 7 wichtigsten Erkenntnisse
 
-**1. Context Rot ist das ungelöste Kernproblem.**
-Alle Frameworks kämpfen damit, dass Claude ab ~50% Context-Füllung in "Completion Mode" degradiert. GSD löst es am besten: Max 2-3 Tasks pro Sub-Agent, frische 200k-Fenster, Stop BEVOR Qualität sinkt. Ralph erzwingt es per Bash-Kill. autonomous-stan hat aktuell NULL Lösung dafür.
+**1. Context Rot ist das ungelöste Kernproblem.** Alle Frameworks kämpfen damit, dass Claude ab ~50% Context-Füllung in "Completion Mode" degradiert. GSD löst es am besten: Max 2-3 Tasks pro Sub-Agent, frische 200k-Fenster, Stop BEVOR Qualität sinkt. Ralph erzwingt es per Bash-Kill. autonomous-stan hat aktuell NULL Lösung dafür.
 
-**2. Hooks die blocken = ~95% Compliance. Alles andere ≤ 40%.**
-Die brutale Wahrheit aus der OpenClaw-Praxis: AGENTS.md-Regeln werden ignoriert (Graphiti-Gate übersprungen, Karte nicht zuerst erstellt, Browser-Hygiene missachtet — alles in MEMORY.md dokumentiert). Nur was technisch blockiert (Tool-Deny, Pre-Tool-Use Hook mit `deny`), wird zuverlässig eingehalten. Das ist die wichtigste Designentscheidung für v2: **Enforcement durch Technik, nicht durch Prosa.**
+**2. Hooks die blocken = ~95% Compliance. Alles andere ≤ 40%.** Die brutale Wahrheit aus OpenClaw-Praxis: AGENTS.md-Regeln werden ignoriert (Graphiti-Gate übersprungen, Karte nicht zuerst erstellt, Browser-Hygiene missachtet — alles in MEMORY.md dokumentiert). Nur was technisch blockiert, wird zuverlässig eingehalten. **Enforcement durch Technik, nicht durch Prosa.**
 
-**3. Kein Framework hat alles — aber die Kombination ist klar.**
-- **Superpowers** hat die beste Enforcement-Philosophie (HARD-GATES, Anti-Rationalization)
-- **GSD** hat die beste Context-Rot-Lösung (frische Sub-Agents, Task-Atomisierung)
-- **BMAD** hat die beste Skalierung (Level 0-4, drei Tracks)
-- **Ralph** hat die beste autonome Loop (Fresh Context, Completion Signal)
-- **PRPs** hat die beste Codebase-Intelligence (Explore before Research, Patterns to Mirror)
-- **Everything-CC** hat die besten Quality Gates (6-Phase Verification Loop)
-- **Beads** hat das beste Task-Tracking (Hash-IDs, Dependency Graph, Compaction)
-- **taming-stan** hat die besten funktionierenden Guards (Credential-Schutz, 3-Strikes)
-- **OpenClaw** hat die beste Produktionsreife (Pre-Compaction Flush, Session Pruning, Multi-Agent)
+**3. Kein Framework hat alles — aber die Kombination ist klar.** Superpowers: beste Enforcement-Philosophie. GSD: beste Context-Rot-Lösung. BMAD: beste Skalierung. Ralph: beste autonome Loop. PRPs: beste Codebase-Intelligence. Everything-CC: beste Quality Gates. Beads: bestes Task-Tracking. taming-stan: beste funktionierende Guards. OpenClaw: beste Produktionsreife.
 
-**4. autonomous-stan v1 ist zu 80% Theorie, 30% Praxis.**
-357 Unit Tests grün, aber nie in einem echten Projekt außerhalb seiner selbst getestet. hooks.json für Plugin-Distribution fehlt. Das Evaluator-Hook-Experiment funktioniert, ist aber nicht integriert. Der kritischste Blocker: **Praxis-Validierung vor weiterer Theorie-Arbeit.**
+**4. autonomous-stan v1 ist 80% Theorie, 30% Praxis.** 357 Unit Tests grün, aber nie in echtem Projekt getestet. hooks.json fehlt. Evaluator-Hook funktioniert experimentell, ist nicht integriert. **Praxis-Validierung vor weiterer Theorie.**
 
-**5. Das Criteria-System ist autonomous-stans Unique Selling Point.**
-24 Criteria in YAML mit atomaren Checks, required-Flags und Evaluator-Model-Angabe — das hat KEIN anderes Framework. Superpowers hat Review-Agents (flexibler aber nicht reproduzierbar), BMAD hat Workflows (aber keine atomaren Quality Gates), Ralph hat gar nichts. **Das Criteria-System behalten und härter enforcen** ist die richtige Strategie.
+**5. Das Criteria-System ist der Unique Selling Point.** 24 Criteria in YAML mit atomaren Checks — hat KEIN anderes Framework. Superpowers hat Review-Agents (flexibler aber nicht reproduzierbar), BMAD hat Workflows (aber keine atomaren Gates). **Criteria behalten und härter enforcen.**
 
-**6. Die 21 Techniques sind einzigartig und unterbewertet.**
-Kein anderes Framework hat ein vergleichbares System strukturierter Denkmethoden. BMAD hat 60+ Brainstorming-Techniken, aber die sind nur für Ideation. autonomous-stans Techniques decken Root Cause Analysis, Perspective Shift, Decision Making, Self Reflection ab. **Techniques + Criteria = die Kombination die kein Competitor hat.**
+**6. Die 21 Techniques sind einzigartig und unterbewertet.** Kein Framework hat vergleichbare strukturierte Denkmethoden. BMAD hat 60+ Brainstorming-Techniken — aber nur für Ideation. autonomous-stans Techniques decken Root Cause, Perspective Shift, Decision Making, Self Reflection ab.
 
-**7. Dual-Target (Claude Code + OpenClaw) ist machbar — aber nur wenn der Kern plattformagnostisch bleibt.**
-Criteria (YAML), Techniques (YAML), Templates (Markdown+YAML), Tasks (JSONL) — all das ist plattformagnostisch. Hooks sind Claude-Code-spezifisch. Skills sind OpenClaw-spezifisch. Der Kern muss sauber von der Runtime getrennt werden.
+**7. Dual-Target (Claude Code + OpenClaw) ist machbar.** Criteria (YAML), Techniques (YAML), Templates (Markdown+YAML), Tasks (JSONL) — plattformagnostisch. Hooks = Claude-Code-spezifisch. Skills = OpenClaw-spezifisch. Kern sauber von Runtime trennen.
 
 ### Was hat uns am meisten überrascht?
 
-- **BMAD's "21 Agents" sind nur 21 YAML-Dateien.** Kein Multi-Agent-System — ein Koch mit 21 Kochmützen. OpenClaw hat 12 echte Köche.
-- **GSD's Context-Rot-Curve ist quantifizierbar:** 0-30% = Peak, 30-50% = Good, 50-70% = Degrading, 70%+ = Rushed. Das erklärt VIELE Probleme die wir "Fehler" nannten.
-- **Superpowers' Anti-Rationalization Tables funktionieren psychologisch**, weil sie Cialdini-Prinzipien nutzen. "Thinking 'skip TDD just this once'? Stop. That's rationalization." — effektiver als jede Regel.
-- **OpenClaw's Pre-Compaction Memory Flush ist genial** — ein Silent-Turn schreibt Learnings auf Disk BEVOR Auto-Compaction den Context löscht. autonomous-stan verliert Learnings bei jedem Compact.
+- **BMAD's "21 Agents" sind nur 21 YAML-Dateien** — ein Koch mit 21 Kochmützen. OpenClaw hat 12 echte Köche.
+- **GSD's Context-Rot-Curve ist quantifizierbar:** 0-30% = Peak, 30-50% = Good, 50-70% = Degrading, 70%+ = Rushed.
+- **Superpowers' Anti-Rationalization Tables** nutzen Cialdini-Prinzipien — effektiver als jede Regel.
+- **OpenClaw's Pre-Compaction Memory Flush** — Silent-Turn schreibt Learnings BEVOR Auto-Compaction den Context löscht.
 
 ---
 
 ## Teil 2: Feature-Matrix
 
-| Feature | Superpowers | BMAD | Ralph | GSD | PRPs | Beads | Everything-CC | OpenClaw | taming-stan | autonomous-stan |
-|---------|:-----------:|:----:|:-----:|:---:|:----:|:-----:|:-------------:|:--------:|:-----------:|:---------------:|
-| **Brainstorming/Dialog** | ✅ Socratic | ✅ 60+ Techniken | ❌ | ✅ discuss-phase | ✅ PRD-Interview | ❌ | ❌ | ❌ | ❌ | ✅ DEFINE Phase |
-| **Task-Tracking** | ⚠️ TodoWrite | ⚠️ Workflow-Docs | ✅ prd.json | ✅ ROADMAP.md | ✅ PRD Phases | ✅ JSONL+Graph | ❌ | ✅ BusinessMap | ❌ | ✅ tasks.jsonl |
-| **TDD** | ✅ Iron Law | ✅ ATDD/TEA | ❌ | ⚠️ TDD Plans | ❌ | ❌ | ✅ TDD Workflow | ❌ | ❌ | ⚠️ Criteria only |
-| **Memory/Learnings** | ❌ | ❌ | ✅ progress.txt | ⚠️ STATE.md | ❌ | ❌ | ✅ Auto-Extract | ✅ Markdown+Vector | ✅ Graphiti | ✅ Tiered Storage |
-| **Guards/Enforcement** | ✅ HARD-GATE | ❌ Prompt only | ❌ | ❌ | ❌ | ❌ | ✅ Hooks | ✅ Tool-Deny | ✅ Python Guards | ⚠️ Designed only |
-| **Subagents** | ✅ 3 pro Task | ⚠️ Party Mode | ❌ | ✅ Wave-Parallel | ⚠️ Review Agents | ❌ | ✅ 9 Agents | ✅ sessions_spawn | ❌ | ⚠️ Geplant |
-| **Scale-Adaptive** | ❌ | ✅ Level 0-4 | ❌ | ⚠️ Quick Mode | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠️ Levels definiert |
-| **Visual Verification** | ❌ | ❌ | ✅ Browser-Pflicht | ❌ | ✅ Level 5 Valid. | ❌ | ❌ | ⚠️ Browser-Skill | ❌ | ⚠️ Criteria exists |
-| **Code Review** | ✅ Two-Stage | ⚠️ TEA | ❌ | ❌ | ✅ Multi-Agent | ❌ | ✅ Code-Reviewer | ❌ | ❌ | ❌ |
-| **Context Management** | ⚠️ CSO | ❌ | ✅ Fresh Context | ✅ 2-3 Tasks/Plan | ❌ | ✅ Compaction | ✅ Strategic Compact | ✅ Auto-Compact+Flush | ❌ | ❌ |
-| **Criteria/Quality Gates** | ⚠️ Review-based | ⚠️ Readiness Gate | ❌ | ❌ | ✅ 6-Level Valid. | ❌ | ✅ Verification Loop | ❌ | ❌ | ✅ 24 YAML Criteria |
-| **Templates** | ❌ | ✅ 50+ | ❌ | ❌ | ✅ PRD+Plan | ❌ | ❌ | ❌ | ❌ | ✅ 3 Templates |
-| **Techniques/Thinking** | ❌ | ✅ 60+ Brainstorm | ❌ | ❌ | ✅ 5 Whys | ❌ | ❌ | ❌ | ✅ STAN.FLUX | ✅ 21 Techniques |
-| **Git Integration** | ✅ Worktrees | ❌ | ✅ Branch+Archive | ✅ Atomic Commits | ✅ gh CLI | ✅ Git-backed DB | ✅ Git Workflow | ❌ | ✅ Conv. Commits | ⚠️ Geplant |
-| **Multi-Agent** | ⚠️ Subagents | ⚠️ Personas (fake) | ❌ | ✅ Wave-Parallel | ✅ Review Agents | ❌ | ✅ 9 Agents | ✅ 12 echte Agents | ❌ | ⚠️ Geplant |
-| **Persistent Memory** | ❌ | ❌ | ⚠️ Git only | ⚠️ .planning/ | ⚠️ .claude/PRPs/ | ✅ JSONL+SQLite | ✅ Learned Skills | ✅ Graphiti+Markdown | ✅ Graphiti | ✅ Tiered+Graphiti |
-| **Context Rot Prevention** | ⚠️ CSO only | ❌ | ✅ Fresh per Iter. | ✅ 2-3 Tasks+Fresh | ❌ | ✅ Compaction | ✅ Strategic Compact | ✅ Pruning+Flush | ❌ | ❌ |
-| **Autonomous Loop** | ⚠️ Subagent Loop | ❌ | ✅ Bash Loop | ✅ Wave Execution | ✅ /prp-ralph | ❌ | ❌ | ✅ Heartbeats | ❌ | ⚠️ Max Iterations |
+| Feature | Super-powers | BMAD | Ralph | GSD | PRPs | Beads | Every-thing-CC | Open-Claw | taming-stan | auto-stan |
+|---------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Brainstorming/Dialog | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Task-Tracking | ⚠️ | ⚠️ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
+| TDD | ✅ | ✅ | ❌ | ⚠️ | ❌ | ❌ | ✅ | ❌ | ❌ | ⚠️ |
+| Memory/Learnings | ❌ | ❌ | ✅ | ⚠️ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Guards/Enforcement | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ⚠️ |
+| Subagents | ✅ | ⚠️ | ❌ | ✅ | ⚠️ | ❌ | ✅ | ✅ | ❌ | ⚠️ |
+| Scale-Adaptive | ❌ | ✅ | ❌ | ⚠️ | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
+| Visual Verification | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ⚠️ | ❌ | ⚠️ |
+| Code Review | ✅ | ⚠️ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Context Management | ⚠️ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Criteria/Quality Gates | ⚠️ | ⚠️ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Templates | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Techniques/Thinking | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Git Integration | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ⚠️ |
+| Multi-Agent | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ⚠️ |
+| Persistent Memory | ❌ | ❌ | ⚠️ | ⚠️ | ⚠️ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Context Rot Prev. | ⚠️ | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Autonomous Loop | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ⚠️ |
 
-**Legende:** ✅ = vollständig implementiert | ⚠️ = teilweise/geplant | ❌ = nicht vorhanden
-
----
-
-## Teil 3: Compliance-Pyramide (Ehrliche Selbstreflexion)
-
-### Die Compliance-Realität
-
-Basierend auf 3 Wochen Produktionserfahrung mit 12 OpenClaw-Agents und den Erkenntnissen aus allen analysierten Frameworks:
-
-| Enforcement-Methode | Compliance-Rate | Quelle/Beweis |
-|---------------------|:--------------:|---------------|
-| **Hook der blockt** (Tool-Deny, PreToolUse deny) | ~95% | taming-stan Credential-Guard, OpenClaw Tool-Deny. Nur umgehbar durch Bug oder bewusstes Workaround. |
-| **Persuasive Sprache + Rationalization Tables** | ~70% | Superpowers' "Iron Law" + Excuse Tables. Effektiv weil sie das LLM's eigene Argumentation antizipieren. |
-| **AGENTS.md Regel mit !! Notation** | ~40% | OpenClaw MEMORY.md: "NIE raten" → 3x geraten. "Karte zuerst" → oft vergessen. "Browser-Hygiene" → 40+ Tabs. |
-| **Lange Prosa in Skill-Docs** | ~20% | Alles >500 Worte wird selektiv gelesen. BMAD's 17.835-Zeilen-Workflow ist Zeitverschwendung. |
-| **Metakognition** ("erkenne deine Warnsignale") | ~0% | taming-stan plan.md Experiment: type:prompt Hooks "beraten, aber durchsetzen NICHT". Claude argumentiert gegen dumme Blocks statt zu gehorchen. |
-
-### Was bedeutet das für autonomous-stan v2?
-
-**1. Die Enforcement-Pyramide bestimmt die Architektur.**
-
-Jedes Feature MUSS einer dieser Enforcement-Stufen zugeordnet werden:
-
-| Stufe | Methode | Wann nutzen | autonomous-stan v2 |
-|-------|---------|-------------|---------------------|
-| **S1** | Hook der blockt | Sicherheit, Credentials, Phase-Gates | `stan_gate.py` (existiert) |
-| **S2** | Persuasive Rationalization Tables | TDD, Code-Before-Test, Debugging | In Skills einbetten |
-| **S3** | PITH-Regel in AGENTS.md | Workflows, Conventions | Bestehende `!!` Regeln |
-| **S4** | Dokumentation in Skill-Docs | Nice-to-have Guidance | Techniques, Best Practices |
-
-**2. "HARD-GATE" ist ein Design Pattern, kein Tag.**
-
-Superpowers' `<HARD-GATE>` funktioniert weil es im FRISCHEN Skill-Context geladen wird. In einer langen Session mit 70% Context-Fill wirkt es nicht mehr. Die Lektion: **HARD-GATES müssen technische Hooks sein, nicht XML-Tags.**
-
-**3. Die ~40% AGENTS.md-Compliance ist gut genug für Conventions.**
-
-Nicht alles muss 95% Compliance haben. Git-Message-Format? 40% reicht — der Guard fixt den Rest. Browser-Tab-Limit? 40% reicht — ein Heartbeat räumt auf. **Reserve harte Enforcement für das was WIRKLICH zählt:** Credentials, Phase-Gates, Verification-Before-Completion.
-
-**4. Metakognition ist Zeitverschwendung.**
-
-"Erkenne wenn du in einem Loop bist" → Agent erkennt es nicht. "Frage dich ob du gerade rationalisierst" → Agent rationalisiert warum er nicht rationalisiert. **3-Strikes ist die mechanische Lösung:** Nach 3 gleichen Fehlern → Block → Perspective Shift. Kein Philosophie-Kurs.
-
-### Die brutale Wahrheit für autonomous-stan v2
-
-Was wir heute *wirklich* enforcen können:
-- ✅ Credential-Schutz (taming-stan Guard → Port nach v2)
-- ✅ Phase-Wechsel-Gates (stan_gate.py → existiert, muss getestet werden)
-- ✅ Commit-Blocking bei offenen Learnings (stan_gate.py → existiert)
-- ✅ 3-Strikes bei Fehler-Loops (taming-stan Pattern → Port nach v2)
-
-Was wir *nicht* enforcen können und akzeptieren müssen:
-- ❌ "Denke erst nach bevor du codest" — Agent codiert trotzdem
-- ❌ "Nutze immer die richtige Technique" — Agent nutzt seine Standardmethode
-- ❌ "Erkenne deine Limitierungen" — Agent überschätzt sich systematisch
-- ❌ "Schreibe gute Commit Messages" — ~60% sind generisch (Guard für Conventional Commits hilft)
+✅ = implementiert | ⚠️ = teilweise | ❌ = nicht vorhanden
 
 ---
 
-## Teil 4: autonomous-stan v2 — Synthese-Empfehlung
+## Teil 3: Compliance-Pyramide
 
-### CRITICAL: Sofort übernehmen
+### Die Compliance-Realität (3 Wochen Produktion mit 12 OpenClaw-Agents)
 
-#### C1: Context Rot Prevention System
-**Beschreibung:** Max 2-3 Tasks pro Sub-Agent-Aufruf. Hauptsession bleibt bei ≤40% Context (nur Orchestration). Sub-Agents bekommen frische 200k-Fenster. Stop-Signal bei >50% Context.  
-**Quelle:** GSD (Kern-Feature) + Ralph (Fresh Context Pattern)  
-**Priorität:** CRITICAL  
-**Aufwand:** 4-6h  
-**Begründung:** autonomous-stan hat aktuell NULL Lösung für Context Rot. GSD beweist: die Qualitätskurve ist real und messbar. Ohne diese Lösung degradiert jede lange Session unweigerlich. Aus der GSD-Analyse: "Claude degradiert in completion mode wenn Context >50-70% voll ist: 0-30% Peak Quality, 50-70% Efficiency Mode, 70%+ Rushed."
+| Enforcement-Methode | Compliance | Beweis |
+|---------------------|:----------:|--------|
+| Hook der blockt (Tool-Deny, PreToolUse deny) | ~95% | taming-stan Credential-Guard, OpenClaw Tool-Deny |
+| Persuasive Sprache + Rationalization Tables | ~70% | Superpowers' "Iron Law" + Excuse Tables |
+| AGENTS.md Regel (!! Notation) | ~40% | MEMORY.md: "NIE raten"→3x geraten, "Karte zuerst"→oft vergessen |
+| Lange Prosa in Skill-Docs | ~20% | BMAD's 17.835-Zeilen-Workflow de facto nicht nutzbar |
+| Metakognition ("erkenne Warnsignale") | ~0% | taming-stan: type:prompt Hooks "beraten, durchsetzen NICHT" |
 
-#### C2: Verification-Before-Completion Gate
-**Beschreibung:** Kein Success-Claim ohne `run command + read output`. "Should work" = Lüge. Nur erlaubt: "[RAN npm test] [SAW: 47/47 pass] All tests pass." Integriert als Hook in stan_gate.py.  
-**Quelle:** Superpowers (Verification Before Completion) + Everything-CC (6-Phase Verification Loop)  
-**Priorität:** CRITICAL  
-**Aufwand:** 3-4h  
-**Begründung:** Aus der Superpowers-Analyse: "'Should pass' = Lying." Aus der OpenClaw-Praxis: Mehrfach "Done!" gesagt ohne zu verifizieren → Bugs in Production. Everything-CC's 6-Phase-Loop (Build → Types → Lint → Tests → Security → Diff) ist das konkrete Template.
+### Konsequenzen für v2
 
-#### C3: Credential-Schutz Guard
-**Beschreibung:** 903 Regex-Patterns für API-Keys, Tokens, Passwörter. 3-Strikes-System bei Violations. Blockiert Graphiti-Writes die Secrets enthalten.  
-**Quelle:** taming-stan (graphiti-guard.py, secret_patterns.py)  
-**Priorität:** CRITICAL  
-**Aufwand:** 2h (direkter Port aus taming-stan)  
-**Begründung:** Aus der taming-stan-Analyse: "Credential-Schutz ist KRITISCH — 903 Patterns + 3-Strikes funktioniert." Ein Leak eines API-Keys in Graphiti wäre ein Security-Incident. Der Code existiert bereits in taming-stan — nur portieren.
+**Enforcement-Pyramide bestimmt Architektur.** Jedes Feature MUSS einer Stufe zugeordnet werden:
+- **S1 (Hook blockt):** Credentials, Phase-Gates, Verification-Before-Completion
+- **S2 (Rationalization Tables):** TDD, Debugging-Disziplin
+- **S3 (PITH-Regel):** Workflows, Conventions
+- **S4 (Doku):** Nice-to-have Guidance
 
-#### C4: 3-Strikes Fehler-Loop-Breaker
-**Beschreibung:** PostToolUse Guard der identische Fehler zählt. Nach 3 gleichen Fehlern → BLOCK → "Suche erst in Graphiti/Learnings nach bekannten Lösungen." Danach → Perspective Shift Technique erzwingen.  
-**Quelle:** taming-stan (graphiti-retry-guard.py) + autonomous-stan Techniques  
-**Priorität:** CRITICAL  
-**Aufwand:** 3h  
-**Begründung:** Aus der taming-stan-Analyse: "3-Strikes-Pattern bricht Loops — nach 3 Fehlern: Graph durchsuchen statt Retry." Aus MEMORY.md: Agent bleibt in Fehler-Loops stecken statt Perspektive zu wechseln. STAN.FLUX adressiert das verbal, 3-Strikes enforced es mechanisch.
+**HARD-GATE = technischer Hook, nicht XML-Tag.** Superpowers' `<HARD-GATE>` funktioniert nur im frischen Context. Bei 70% Fill wirkt es nicht.
 
-#### C5: Praxis-Validierung (Test-Projekt + hooks.json)
-**Beschreibung:** hooks.json mit ${CLAUDE_PLUGIN_ROOT} erstellen. Plugin in echtem Projekt installieren. Full Workflow durchlaufen (DEFINE → PLAN → CREATE). Edge Cases dokumentieren.  
-**Quelle:** current-state Analyse (80% Theorie, 30% Praxis)  
-**Priorität:** CRITICAL  
-**Aufwand:** 8-12h  
-**Begründung:** Aus der Current-State-Analyse: "357 Unit Tests grün, aber nie in echtem Projekt außerhalb autonomous-stan verwendet." und "hooks.json fehlt — Plugin nicht installierbar." Keine weitere Theorie-Arbeit ohne Praxis-Validierung. Das ist der kritischste Blocker.
+**~40% Compliance reicht für Conventions.** Git-Format? Guard fixt den Rest. Reserve S1 für Sicherheit.
+
+**Metakognition = Zeitverschwendung.** Agent rationalisiert warum er nicht rationalisiert. 3-Strikes ist die mechanische Lösung.
 
 ---
 
-### HIGH: Nächste Iteration
+## Teil 4: Synthese-Empfehlung
 
-#### H1: Scale-Adaptive Workflow-Routing
-**Beschreibung:** Projektkomplexität automatisch erkennen (Story-Count, Epic-Count, Integration-Count). Route zu richtigem Track: Quick Flow (≤3 Stories, skip Architecture), Standard (4-10 Stories), Complex (>10 Stories, Architecture required).  
-**Quelle:** BMAD (Level 0-4, drei Tracks)  
-**Priorität:** HIGH  
-**Aufwand:** 6-8h  
-**Begründung:** Aus der BMAD-Analyse: "Das ausgereifteste Scaling-System aller Frameworks." autonomous-stan behandelt aktuell alle Projekte gleich — ein Config-Fix braucht keinen PRD. Complexity-Levels (0-4) sind definiert aber nicht enforced. BMAD zeigt wie: Auto-Detection nach `/stan plan` basierend auf Story-Count.
+### CRITICAL: Sofort übernehmen (~20-27h)
 
-#### H2: Two-Stage Code Review (Spec → Quality)
-**Beschreibung:** Bei jedem Task erst Spec-Compliance (nichts fehlt, nichts extra), dann Code-Quality (erst nach Spec-Approval). Zwei separate Sub-Agents. Issue-Severity: Critical/Important/Minor.  
-**Quelle:** Superpowers (requesting-code-review, receiving-code-review)  
-**Priorität:** HIGH  
-**Aufwand:** 4-5h  
-**Begründung:** Aus der Superpowers-Analyse: "Stage 1: Spec-Compliance (nichts fehlt, nichts extra). Stage 2: Code Quality (erst nachdem Spec grün ist!). Verhindert, dass gut geschriebener Code shipped wird, der das Falsche tut." Unsere bisherigen Reviews prüfen beides gleichzeitig → Spec-Gaps werden übersehen.
+| # | Feature | Quelle | h | Begründung |
+|---|---------|--------|---|------------|
+| C1 | **Context Rot Prevention** — Max 2-3 Tasks/Sub-Agent, Hauptsession ≤40%, frische 200k für Sub-Agents | GSD + Ralph | 4-6 | NULL Lösung heute. Qualitätskurve ist real und messbar. |
+| C2 | **Verification-Before-Completion Gate** — Kein Success ohne `run + read output`. "Should work" = Lüge. | Superpowers + Everything-CC | 3-4 | OpenClaw-Praxis: "Done!" ohne Verifikation → Bugs in Production. |
+| C3 | **Credential-Schutz Guard** — 903 Regex-Patterns, 3-Strikes. Blockiert Graphiti-Writes mit Secrets. | taming-stan | 2 | Code existiert in taming-stan. Nur portieren. |
+| C4 | **3-Strikes Loop-Breaker** — 3 gleiche Fehler → Block → Learnings suchen → Perspective Shift. | taming-stan | 3 | MEMORY.md: Agent bleibt in Loops. STAN.FLUX verbal, 3-Strikes mechanisch. |
+| C5 | **Praxis-Validierung** — hooks.json + Test-Projekt + Full Workflow. | current-state | 8-12 | 80% Theorie, 30% Praxis. Keine weitere Theorie ohne Test. |
 
-#### H3: Patterns-to-Mirror in Plan-Template
-**Beschreibung:** Plan-Template um "Patterns to Mirror"-Sektion erweitern. Jedes Pattern mit SOURCE (`file:line`) und Code-Snippet. Agent MUSS vor Implementation bestehende Patterns finden und dokumentieren.  
-**Quelle:** PRPs (Codebase-Intelligence, Explore Agent)  
-**Priorität:** HIGH  
-**Aufwand:** 2-3h  
-**Begründung:** Aus der PRPs-Analyse: "Kein anderes Framework erzwingt so rigoros 'Codebase ZUERST, Research ZWEITER'." und "Neuer Code spiegelt exakt bestehende Conventions." Verhindert das #1-Problem: Agent erfindet neue Patterns statt bestehende zu nutzen.
+### HIGH: Nächste Iteration (~24-30h)
 
-#### H4: Anti-Rationalization Tables in kritischen Skills
-**Beschreibung:** Systematische Excuse→Reality Tabellen in TDD-Skill, Debugging-Skill und Verification-Skill. "Thinking 'skip TDD just this once'? Stop. That's rationalization."  
-**Quelle:** Superpowers (Rationalization Tables, persuasion-principles.md)  
-**Priorität:** HIGH  
-**Aufwand:** 2h  
-**Begründung:** Aus der Compliance-Pyramide: Persuasive Sprache = ~70% Compliance. Das ist die zweitstärkste Enforcement-Methode nach Hooks. Superpowers nutzt Cialdini-Prinzipien bewusst — Commitment/Consistency, Social Proof ("Every great developer tests first"). Kein anderes Framework macht das so systematisch.
+| # | Feature | Quelle | h | Begründung |
+|---|---------|--------|---|------------|
+| H1 | **Scale-Adaptive Routing** — Auto-Detection: Quick (≤3), Standard (4-10), Complex (>10 Stories). | BMAD | 6-8 | Config-Fix braucht keinen PRD. |
+| H2 | **Two-Stage Review** — Erst Spec-Compliance, dann Code-Quality. Zwei Sub-Agents. | Superpowers | 4-5 | Verhindert "guter Code der Falsches tut." |
+| H3 | **Patterns-to-Mirror** — Bestehende Patterns mit file:line VOR Implementation dokumentieren. | PRPs | 2-3 | Verhindert #1-Problem: Agent erfindet neue Patterns. |
+| H4 | **Anti-Rationalization Tables** — Excuse→Reality in TDD, Debugging, Verification Skills. | Superpowers | 2 | ~70% Compliance — zweitstärkste Methode nach Hooks. |
+| H5 | **ADRs** — Template mit Context/Decision/Consequences. Pflicht bei >5 Stories. | BMAD + Everything-CC | 3 | Verhindert Agent-Konflikte bei paralleler Arbeit. |
+| H6 | **Discuss-Phase** — Graubereiche klären, Entscheidungen in CONTEXT.md locken. | GSD | 4-5 | DEFINE→PLAN springt ohne systematische Klärung. |
+| H7 | **Git Worktrees** — Default für Features. Safety-Check .gitignore. | Superpowers | 3 | Parallele Isolation ohne Branch-Switching. |
 
-#### H5: Architecture Decision Records (ADRs)
-**Beschreibung:** Template `docs/adr/ADR-XXX-template.md` mit Context, Decision, Consequences, Alternatives, Status. Pflicht bei Multi-Epic-Projekten (>5 Stories). Verhindert Agent-Konflikte bei paralleler Arbeit.  
-**Quelle:** BMAD (Architecture Workflow) + Everything-CC (architect.md Agent)  
-**Priorität:** HIGH  
-**Aufwand:** 3h  
-**Begründung:** Aus der BMAD-Analyse: "Phase 3: Solutioning ist DAS fehlende Puzzleteil für Multi-Epic-Projekte." und "ADRs sind der Schlüssel zur Vermeidung von Agent-Konflikten." Beispiel ohne ADRs: Agent 1 nutzt REST, Agent 2 nutzt GraphQL → Integration Nightmare. Mit ADR-001: "GraphQL für alle APIs" → Konsistenz.
+### MEDIUM: Nice-to-have (~23-30h)
 
-#### H6: Discuss-Phase (Graubereich-Erkennung)
-**Beschreibung:** VOR dem Planning: Graubereiche identifizieren basierend auf Feature-Typ (Visual → Layout-Fragen, API → Error-Handling-Fragen, Data → Schema-Fragen). User-Entscheidungen in CONTEXT.md locken. Planner MUSS gegen CONTEXT.md validieren.  
-**Quelle:** GSD (discuss-phase, CONTEXT.md)  
-**Priorität:** HIGH  
-**Aufwand:** 4-5h  
-**Begründung:** Aus der GSD-Analyse: "CONTEXT.md lockt User-Entscheidungen. PLAN.md muss self-check: Jede locked decision hat Task, keine deferred idea wird implementiert." autonomous-stan springt von DEFINE direkt zu PLAN ohne systematische Graubereich-Klärung. Das führt zu Annahmen die der User nicht getroffen hat.
+| # | Feature | Quelle | h |
+|---|---------|--------|---|
+| M1 | Systematic Debugging (4-Phase statt STAN.FLUX) | Superpowers + PRPs | 3-4 |
+| M2 | Atomic Git Commits (1 Task = 1 Commit) | GSD + taming-stan | 2 |
+| M3 | Wave-basierte Parallel Execution | GSD | 6-8 |
+| M4 | Deviation Rules (Bug=Auto, Arch=Ask) | GSD | 2 |
+| M5 | Brownfield Analysis (`/stan analyze-codebase`) | BMAD | 4-5 |
+| M6 | Pre-Compaction Memory Flush | OpenClaw | 3-4 |
+| M7 | Completion Signal (`<promise>COMPLETE</promise>`) | Ralph | 1 |
+| M8 | Research-Hierarchie Guard (Graphiti→Codebase→Web) | taming-stan | 2-3 |
 
-#### H7: Git Worktrees als Standard-Workflow
-**Beschreibung:** Default für Feature-Development: Worktree statt Branch-Switching. Safety-Check: `.worktrees` in `.gitignore`. Automatische Directory-Selection (existing → CLAUDE.md → ask). Integration in CREATE-Phase.  
-**Quelle:** Superpowers (using-git-worktrees)  
-**Priorität:** HIGH  
-**Aufwand:** 3h  
-**Begründung:** Aus der Superpowers-Analyse: "Parallel Development ohne Branch-Switching, saubere Isolation." Superpowers macht Worktrees zum Default — nicht optional, nicht "wenn du willst", sondern Standard. autonomous-stan hat es als Konzept, Superpowers hat es als enforced Workflow.
+### LOW: Später evaluieren (~50h+)
 
----
-
-### MEDIUM: Nice-to-have
-
-#### M1: Systematic Debugging (4-Phase Protocol)
-**Beschreibung:** STAN.FLUX durch strukturiertes 4-Phase-Protocol ersetzen: Root Cause Investigation (MUSS abgeschlossen sein) → Pattern Analysis → Hypothesis Testing → Implementation. Regel: 3+ failed fixes = question architecture.  
-**Quelle:** Superpowers (systematic-debugging) + PRPs (5 Whys)  
-**Priorität:** MEDIUM  
-**Aufwand:** 3-4h  
-**Begründung:** STAN.FLUX ist fuzzy ("stuck, raten, Fehler-Loops"). Superpowers' Debugging ist strukturierter: Phase 1 MUSS vor Fixes abgeschlossen sein. PRPs ergänzt 5 Whys mit Evidence-Chain (jedes "Because" braucht `file:line`-Proof).
-
-#### M2: Atomic Git Commits pro Task
-**Beschreibung:** 1 Task = 1 Commit. Format: `{type}({task-id}): {description}`. Types: feat|fix|test|refactor|docs|chore. Staging einzeln (NIE `git add .`). Git bisect wird möglich.  
-**Quelle:** GSD (Atomic Commits) + taming-stan (git-workflow-guard.py)  
-**Priorität:** MEDIUM  
-**Aufwand:** 2h  
-**Begründung:** Aus der GSD-Analyse: "Jeder Task = 1 Commit. Git bisect findet exakten failing Task. Jeder Task independently revertable." taming-stan hat bereits einen Git-Workflow-Guard der Conventional Commits erzwingt — direkt portierbar.
-
-#### M3: Wave-basierte Parallel Execution
-**Beschreibung:** Dependency Graph analysieren → Tasks in Waves gruppieren (Wave 1: keine Dependencies parallel, Wave 2: depends on Wave 1, etc.). File-Ownership Prevention: Overlap → sequential, no overlap → parallel.  
-**Quelle:** GSD (Wave Execution)  
-**Priorität:** MEDIUM  
-**Aufwand:** 6-8h  
-**Begründung:** Aus der GSD-Analyse: "Task A (User model): Wave 1 → Task C (User API): needs A → Wave 2". autonomous-stan hat Multi-Agent als Konzept aber keine automatische Dependency-Graph→Wave-Zuordnung.
-
-#### M4: Deviation Rules (Auto-Fix vs Ask)
-**Beschreibung:** Explizite Rules für autonome Bug-Fixes: Rule 1-3 (Bug, Missing Critical, Blocker) = Auto-fix + Track. Rule 4 (Architectural Change: neue Tabelle, Schema, Framework-Switch) = STOP → Ask User.  
-**Quelle:** GSD (Deviation Rules 1-4)  
-**Priorität:** MEDIUM  
-**Aufwand:** 2h  
-**Begründung:** Aus der GSD-Analyse: "Keine Permission für Basics, User-Input nur bei Design-Impact." autonomous-stan hat keine expliziten Deviation Rules — Agent fragt entweder zu viel oder zu wenig.
-
-#### M5: Brownfield Analysis Workflow
-**Beschreibung:** Neuer Command `/stan analyze-codebase`. Analysiert existierenden Code: Tech-Stack, Patterns (Naming, Directory), Test-Frameworks, Code Style (Linter Config), Dependencies. Output: `docs/codebase-analysis.md`.  
-**Quelle:** BMAD (document-project Workflow)  
-**Priorität:** MEDIUM  
-**Aufwand:** 4-5h  
-**Begründung:** Aus der BMAD-Analyse: "Brownfield-Support ist kritisch für Real-World-Adoption." autonomous-stan hat KEINE "Document Existing Project"-Logik. Die meisten echten Projekte sind Brownfield, nicht Greenfield.
-
-#### M6: Pre-Compaction Memory Flush
-**Beschreibung:** Silent-Turn vor Auto-Compaction der Learnings auf Disk schreibt. Verhindert Wissens-Verlust bei Context-Rotation. NO_REPLY Flag damit User keine Spam-Messages bekommt.  
-**Quelle:** OpenClaw (Pre-Compaction Flush Architektur)  
-**Priorität:** MEDIUM  
-**Aufwand:** 3-4h  
-**Begründung:** Aus der OpenClaw-Analyse: "Pre-Compaction Memory Flush ist genial — ein Silent-Turn schreibt Learnings auf Disk BEVOR Auto-Compaction den Context löscht." autonomous-stan's Learnings-System verliert alles was seit dem letzten expliziten Save passiert ist. OpenClaw hat das Problem gelöst — autonomous-stan sollte das Pattern portieren.
-
-#### M7: Activity Log (Session-Level Debugging)
-**Beschreibung:** Automatisches Logging: Was wurde getan, welche Dateien geändert, welche Tests liefen. Output: `docs/activity.md` als Debug-Hilfe.  
-**Quelle:** Ralph (activity.md Pattern)  
-**Priorität:** MEDIUM  
-**Aufwand:** 2-3h  
-**Begründung:** Aus der Ralph-Analyse: "Activity Log fehlt — nur Learnings. Session-Level-Debugging ist blind ohne Log."
-
----
-
-### LOW: Später evaluieren
-
-#### L1: Beads-Integration (Graph-basiertes Task-Tracking)
-**Beschreibung:** JSONL Task-Storage mit Hash-based IDs, Dependency-Graph, `--json` API. Alternative zu `.stan/tasks.jsonl`.  
-**Quelle:** Beads  
-**Priorität:** LOW  
-**Aufwand:** 8-12h  
-**Begründung:** Beads ist mächtiger als unser JSONL, aber die Migration wäre aufwendig und autonomous-stan's Task-System funktioniert.
-
-#### L2: Confidence Scoring für Learnings
-**Beschreibung:** Jedes Learning bekommt Confidence (0.3-0.9), steigt bei Bestätigung, sinkt bei Widerlegung. Decay (-0.02/Woche ohne Beobachtung).  
-**Quelle:** Everything-CC (continuous-learning-v2)  
-**Priorität:** LOW  
-**Aufwand:** 6-8h  
-**Begründung:** Interessantes Konzept, aber widerspricht Zettelkasten-Prinzip. Alternative: `last_validated` Timestamp für Such-Ranking.
-
-#### L3: Model Profiles (Quality/Balanced/Budget)
-**Beschreibung:** Verschiedene Model-Profiles für Planner (Opus), Executor (Sonnet), Verifier (Haiku).  
-**Quelle:** GSD (Model Profiles) + autonomous-stan Criteria (evaluator_model)  
-**Priorität:** LOW  
-**Aufwand:** 2-3h  
-**Begründung:** autonomous-stan hat `evaluator_model` in Criteria — das Konzept existiert. Vollständige Profile sind Nice-to-have.
-
-#### L4: BDUI-Style TUI für Task-Visualisierung
-**Beschreibung:** Terminal-basierte Visualisierung des Task-Status, Dependencies, Phase-Progress.  
-**Quelle:** BDUI  
-**Priorität:** LOW  
-**Aufwand:** 8-12h  
-**Begründung:** Cool aber nicht essentiell. `/stan statusupdate` reicht für den Anfang.
+| # | Feature | Quelle | h |
+|---|---------|--------|---|
+| L1 | Erweiterte Brainstorming-Techniken (40+ von BMAD) | BMAD | 4 |
+| L2 | Hierarchische Task-IDs (Epic.Task.Subtask) | Beads | 6 |
+| L3 | Task-Compaction (Memory Decay) | Beads | 8 |
+| L4 | Eval-Driven Development (pass@k Metriken) | Everything-CC | 8-10 |
+| L5 | Multi-Agent Code Review (7 Spezialisten) | PRPs | 10 |
+| L6 | TUI Visualisierung (Kanban im Terminal) | BDUI | 15+ |
 
 ---
 
@@ -317,114 +143,453 @@ Was wir *nicht* enforcen können und akzeptieren müssen:
 ```
 autonomous-stan/
 ├── .claude-plugin/
-│   └── plugin.json              # Claude Code Plugin Manifest
-├── commands/
-│   └── autonomous-stan/         # /stan Commands (Claude Code)
-│       ├── init.md              # Projekt starten
-│       ├── define.md            # DEFINE Phase (Dialog)
-│       ├── plan.md              # PLAN Phase (Tasks ableiten)
-│       ├── create.md            # CREATE Phase (Autonom)
-│       ├── think.md             # Techniques (Standalone)
-│       ├── verify.md            # NEU: Verification Gate
-│       └── analyze-codebase.md  # NEU: Brownfield Analysis
-├── hooks/
-│   ├── hooks.json               # Hook-Konfiguration
+│   ├── plugin.json              # Plugin-Manifest
+│   └── marketplace.json
+│
+├── core/                        # PLATTFORMAGNOSTISCHER KERN
+│   ├── criteria/                # 24+ YAML Criteria
+│   │   ├── strategy/            # goal-quality, story-size, feasibility
+│   │   ├── code/                # code-quality, test-coverage, security
+│   │   ├── text/                # text-quality, conciseness
+│   │   ├── design/              # responsive, a11y, ux-quality
+│   │   └── meta/                # meta-criteria-valid
+│   ├── techniques/              # 21+ YAML Techniques
+│   │   ├── purposes/            # 9 Purpose-Einstiegspunkte
+│   │   └── *.yaml              # Atomic Techniques
+│   ├── templates/
+│   │   ├── prd.md.template
+│   │   ├── plan.md.template     # mit Patterns-to-Mirror Section
+│   │   ├── adr.md.template      # Architecture Decision Records
+│   │   └── codebase-analysis.md.template
+│   ├── rationalization/         # Anti-Rationalization Tables
+│   │   ├── tdd.md
+│   │   ├── verification.md
+│   │   └── debugging.md
+│   └── deviation-rules.md       # Auto-Fix vs Ask
+│
+├── hooks/                       # CLAUDE-CODE-SPEZIFISCH
+│   ├── hooks.json               # ${CLAUDE_PLUGIN_ROOT} Pfade
 │   └── autonomous-stan/
-│       ├── stan_context.py      # UserPromptSubmit: Phase-Reminder
-│       ├── stan_gate.py         # PreToolUse: Phase-Gates + Blocks
-│       ├── stan_track.py        # PostToolUse: Learnings + 3-Strikes
-│       └── lib/                 # Shared Python Libraries
-├── criteria/                    # Quality Gates (YAML)
-├── techniques/                  # Denkmethoden (YAML)
-│   └── purposes/                # 9 Einstiegspunkte
-├── templates/                   # Dokument-Vorlagen
-│   ├── adr.md.template          # NEU: ADRs
-│   └── context.md.template      # NEU: Discuss-Phase Output
-├── skills/                      # NEU: OpenClaw Skills (Dual-Target)
+│       ├── stan_context.py      # SessionStart/UserPromptSubmit
+│       ├── stan_track.py        # PostToolUse (Test-Tracking)
+│       ├── stan_gate.py         # PreToolUse (Phase-Gates, Verification)
+│       ├── credential_guard.py  # 903-Pattern Credential-Schutz
+│       ├── retry_guard.py       # 3-Strikes Loop-Breaker
+│       └── lib/
+│           ├── session_state.py
+│           ├── secret_patterns.py
+│           └── context_rot.py   # Context-Fill-Monitor
+│
+├── commands/stan/               # CLAUDE-CODE SLASH-COMMANDS
+│   ├── init.md, define.md, plan.md, create.md
+│   ├── verify.md               # Verification Loop
+│   ├── think.md, complete.md
+│   └── analyze-codebase.md     # Brownfield
+│
+├── agents/                      # Sub-Agent-Definitionen
+│   ├── spec-reviewer.md         # Stage 1: Spec Compliance
+│   ├── quality-reviewer.md      # Stage 2: Code Quality
+│   ├── architect.md             # ADRs, System-Design
+│   └── security-reviewer.md     # OWASP, Race Conditions
+│
+├── skills/                      # OPENCLAW-SPEZIFISCH
 │   ├── techniques/SKILL.md
+│   ├── criteria-check/SKILL.md
 │   ├── brainstorming/SKILL.md
+│   ├── tdd-enforcement/SKILL.md
+│   ├── scale-adaptive/SKILL.md
 │   ├── verification/SKILL.md
-│   └── tdd/SKILL.md
-├── .stan/                       # Runtime State
+│   └── context-rot/SKILL.md
+│
+├── .stan/                       # RUNTIME STATE
 │   ├── tasks.jsonl
-│   └── session.json
+│   ├── session.json
+│   ├── config.yaml
+│   └── learnings/
+│       ├── recent.json
+│       ├── hot.json
+│       └── archive.json
+│
 └── docs/
-    └── analysis/                # Diese Analysen
+    ├── plan.md
+    ├── adr/
+    └── analysis/
 ```
 
-### Dual-Target: Claude Code + OpenClaw
+**Kern-Prinzip:** `core/` ist plattformagnostisch (YAML, Markdown, JSONL). `hooks/` ist Claude-Code. `skills/` ist OpenClaw. Alles was in `core/` lebt, funktioniert auf beiden Plattformen.
 
+### Hook-System: Was funktioniert, was nicht
+
+**Funktioniert (aus taming-stan + OpenClaw Praxis):**
+
+| Hook-Typ | Beispiel | Compliance |
+|-----------|---------|:----------:|
+| PreToolUse deny | Credential-Guard blockiert Graphiti-Write mit Secrets | ~95% |
+| PreToolUse deny | Phase-Gate blockiert Code vor Plan-Approval | ~95% |
+| PostToolUse tracking | 3-Strikes zählt Fehler, blockiert nach 3 | ~95% |
+| PreToolUse deny | Git-Guard blockiert non-conventional Commits | ~95% |
+
+**Funktioniert NICHT (aus taming-stan plan.md Experimenten):**
+
+| Hook-Typ | Beispiel | Warum nicht |
+|-----------|---------|-------------|
+| type:prompt (beratend) | "Hast du Graphiti gesucht?" | Kann nicht blocken, nur warnen. Agent ignoriert. |
+| systemMessage | "Spawne Subagent für Review" | Claude spawnt nicht autonom, nur wenn User fragt. |
+| Metakognition | "Erkenne wenn du rationalisierst" | Agent rationalisiert warum er nicht rationalisiert. |
+
+**Design-Regel für v2:** Jeder Hook MUSS entweder `deny` zurückgeben können oder er ist kein Hook sondern Dokumentation. Dokumentation → in `core/rationalization/` oder AGENTS.md.
+
+### State Management
+
+**Zwei-Schichten-State:**
+
+| Schicht | Datei | Lebensdauer | Inhalt |
+|---------|-------|-------------|--------|
+| Session | `.stan/session.json` | Pro Session | Flags (graphiti_searched, tests_run), Error-Counts, Context-Fill |
+| Persistent | `.stan/tasks.jsonl` | Projektlebensdauer | Tasks, Status, Dependencies, Acceptance Criteria |
+| Persistent | `.stan/learnings/` | Projektlebensdauer | recent (rolling 50), hot (promoted), archive (permanent) |
+| Persistent | `docs/` | Projektlebensdauer | PRD, Plan, ADRs, Codebase-Analysis |
+
+**Session-State (`.stan/session.json`):**
+```json
+{
+  "graphiti_searched": false,
+  "firecrawl_attempted": false,
+  "error_counts": {"npm_test": 0, "typecheck": 0},
+  "context_fill_estimate": 0.35,
+  "tasks_completed_this_session": 2,
+  "verification_ran": false,
+  "last_technique_used": null
+}
 ```
-┌─────────────────────────────────────────────────┐
-│         PLATTFORM-AGNOSTISCHER KERN             │
-│  Criteria (YAML) + Techniques (YAML)            │
-│  Templates (Markdown) + Tasks (JSONL)           │
-│  Learnings (JSON/JSONL)                         │
-├─────────────────────────────────────────────────┤
-│  ┌──────────────────┐  ┌──────────────────────┐│
-│  │ CLAUDE CODE      │  │ OPENCLAW             ││
-│  │ .claude-plugin/  │  │ skills/              ││
-│  │ commands/        │  │ AGENTS.md            ││
-│  │ hooks/ (Python)  │  │ Graphiti             ││
-│  │ settings.json    │  │ sessions_spawn       ││
-│  └──────────────────┘  └──────────────────────┘│
-└─────────────────────────────────────────────────┘
+
+**NEU in v2: Context-Fill-Tracking.** Der Context-Rot-Guard schätzt die Context-Füllung basierend auf Tool-Call-Count und Message-Length. Bei >50% → Warnung. Bei >70% → Block und Empfehlung: "Dispatche restliche Tasks an frische Sub-Agents."
+
+### Plugin-Format: Claude Code Plugin vs OpenClaw Skill
+
+| Dimension | Claude Code Plugin | OpenClaw Skill |
+|-----------|-------------------|----------------|
+| **Discovery** | YAML Frontmatter in SKILL.md | SKILL.md in skills/ Verzeichnis |
+| **Loading** | On-demand (Skill Tool) | Pre-loaded via Project Context |
+| **Enforcement** | Hooks (Python, deny/allow) | PITH-Regeln (Prompt-Level) |
+| **Sub-Agents** | Task Tool (native) | sessions_spawn (OpenClaw) |
+| **State** | session.json + hooks lib | Graphiti + memory/*.md |
+| **Distribution** | Plugin Marketplace | Git + NFS shared skills |
+
+**Dual-Target-Strategie:**
+1. `core/` Inhalte werden von BEIDEN Plattformen gelesen
+2. Claude Code: Hooks enforcen, Commands triggern, Agents reviewen
+3. OpenClaw: Skills wrappen core/ Inhalte, PITH-Regeln in AGENTS.md
+
+**Beispiel: Criteria-Check auf beiden Plattformen:**
+
+Claude Code:
 ```
+stan_gate.py → liest core/criteria/code/test-coverage.yaml → deny wenn nicht erfüllt
+```
+
+OpenClaw:
+```
+skills/criteria-check/SKILL.md → Agent liest core/criteria/*.yaml → prüft und reportet
+```
+
+Gleiche Criteria-YAML, verschiedene Enforcement-Mechanismen.
 
 ---
 
 ## Teil 6: OpenClaw-Rückportierung
 
-### Was die 12 Agents SOFORT übernehmen können
+Was können die 12 OpenClaw-Agents SOFORT als Skills übernehmen?
 
-| # | Skill | Trigger | Für wen | Aufwand |
-|---|-------|---------|---------|---------|
-| 1 | **Techniques** | "stuck", "problem", "think" | ALLE | 3-4h |
-| 2 | **Brainstorming** | "brainstorm", "idee", "konzept" | Stan, Patrick, Klaus | 2-3h |
-| 3 | **Verification-Before-Completion** | "fertig", "done", "review" | ALLE | 2h |
-| 4 | **TDD-Enforcement** (verbessert) | "test", "TDD", "bug fix" | Stan, Patrick | 1-2h |
-| 5 | **Scale-Adaptive Planning** | "plan", "projekt", "feature" | Stan, Klaus | 3-4h |
-| 6 | **Context Rot Prevention** | Automatisch bei langen Sessions | ALLE | 1h |
-| 7 | **Criteria-Checks** | "quality check", "criteria" | Stan, Patrick, Klaus | 4-5h |
+### 6.1 Techniques als Skill
 
-**Gesamtaufwand Rückportierung: ~17-21h**
+**SKILL.md Format:**
+```markdown
+---
+name: thinking-techniques
+description: 21 strukturierte Denkmethoden für Root Cause, Ideation, Perspective Shift
+trigger: stuck, nachdenken, analyse, brainstorming, perspektive, entscheidung
+---
+
+## Wann nutzen
+- Vor jeder komplexen Entscheidung
+- Bei Stuck/Loop (nach 3-Strikes)
+- Bei kreativen Aufgaben (Design, Naming, Architecture)
+
+## Verfügbare Techniques nach Purpose
+
+### Root Cause Analysis
+- Five Whys: 5x "Warum?" mit Evidence-Chain (file:line)
+- First Principles: Annahmen zerlegen bis Grundwahrheiten
+- Assumption Reversal: Jede Annahme umkehren und prüfen
+
+### Perspective Shift
+- Six Thinking Hats: 6 Perspektiven durchgehen (Fakten, Emotionen, Risiken, Chancen, Kreativität, Prozess)
+- Alien Anthropologist: Feature erklären als wäre man Außerirdischer
+
+### Decision Making
+- Superposition Collapse: Alle Optionen gleichzeitig halten, dann zwingen zu kollabieren
+- First Principles: Warum MUSS es so sein? Was wenn nicht?
+
+## Anwendung
+1. Purpose identifizieren (was brauche ich?)
+2. Technique wählen (oder empfohlen bekommen)
+3. Technique-Steps durcharbeiten
+4. Ergebnis dokumentieren in memory/YYYY-MM-DD.md
+```
+
+**Trigger-Words:** stuck, nachdenken, analyse, brainstorming, perspektive, entscheidung, alternativen, warum
+
+### 6.2 Brainstorming-Workflow
+
+**SKILL.md Format:**
+```markdown
+---
+name: brainstorming
+description: Strukturiertes Brainstorming mit Socratic Refinement
+trigger: brainstorming, ideen, design, konzept, feature-idee
+---
+
+## Workflow
+1. Problem definieren (1 Satz)
+2. Graubereiche identifizieren (Was ist NICHT klar?)
+3. Fragen stellen (One-at-a-Time, nicht Fragenkatalog)
+4. Design präsentieren in Chunks (nicht alles auf einmal)
+5. Approval pro Chunk einholen
+6. Erst nach vollem Approval: Implementation planen
+
+## HARD-GATE
+Kein Code, kein Scaffold, keine Implementation BEVOR Design approved.
+Wenn du dich dabei ertappst Code zu schreiben → STOP → zurück zu Schritt 2.
+
+## Rationalization Table
+| Excuse | Realität |
+|--------|---------|
+| "Ist eh klar, brauche kein Brainstorming" | Dann dauert es 5 Min. Mach es trotzdem. |
+| "Kann ich während dem Coden klären" | Nein. Design-Fehler kosten 10x mehr als Coding-Fehler. |
+| "User hat ja schon gesagt was er will" | User weiß was er WILL, nicht was er BRAUCHT. |
+```
+
+**Trigger-Words:** brainstorming, ideen, design, konzept, feature-idee, kreativ
+
+### 6.3 TDD-Enforcement
+
+**SKILL.md Format:**
+```markdown
+---
+name: tdd-enforcement
+description: Test-Driven Development mit Iron Law und Anti-Rationalization
+trigger: test, tdd, testing, tests schreiben, test first
+---
+
+## The Iron Law
+NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.
+Write code before the test? Delete it. Start over.
+
+## RED-GREEN-REFACTOR
+1. RED: Schreibe Test der fehlschlägt. Verifiziere dass er KORREKT fehlschlägt.
+2. GREEN: Schreibe MINIMALEN Code damit Test grünt. Nicht mehr.
+3. REFACTOR: Verbessere Code. Tests müssen grün bleiben.
+
+## Rationalization Table
+| Excuse | Realität |
+|--------|---------|
+| "Zu simpel für Test" | Simple Code bricht auch. Test dauert 30 Sekunden. |
+| "Teste ich danach" | Tests die sofort passen beweisen nichts. |
+| "Ist nur Config" | Config-Fehler verursachen 30% aller Production Incidents. |
+| "Nur einmal, schnell" | "Nur einmal" × 100 = technische Schulden. |
+| "Bin mir sicher" | Dein Confidence-Level korreliert nicht mit Korrektheit. |
+```
+
+**Trigger-Words:** test, tdd, testing, tests schreiben, test first, unit test
+
+### 6.4 Scale-Adaptive Planning
+
+**SKILL.md Format:**
+```markdown
+---
+name: scale-adaptive
+description: Planungstiefe automatisch an Projektkomplexität anpassen
+trigger: plan, projekt, feature, implementierung, architektur
+---
+
+## Complexity Detection
+- ≤3 Stories → QUICK (kein PRD, direkt Plan, skip Architecture)
+- 4-10 Stories → STANDARD (PRD, Plan, optional Architecture)
+- >10 Stories oder >2 Epics → COMPLEX (PRD, Architecture REQUIRED, ADRs, Plan)
+
+## Quick Flow (5-15 Min)
+1. Problem in 2-3 Sätzen
+2. Tasks auflisten (max 3)
+3. Implementieren
+
+## Standard Flow (30-60 Min)
+1. DEFINE: PRD light (Hypothesis, JTBD, Stories)
+2. PLAN: Tasks mit Dependencies
+3. CREATE: Implementieren mit Verification
+
+## Complex Flow (1-3h)
+1. DEFINE: Full PRD (Evidence, MoSCoW, Feasibility)
+2. ARCHITECTURE: ADRs für Tech-Decisions
+3. PLAN: Tasks mit Phases + Wave-Zuordnung
+4. CREATE: Sub-Agents mit Two-Stage Review
+```
+
+**Trigger-Words:** plan, projekt, feature, implementierung, architektur, neues feature
+
+### 6.5 Criteria-Checks
+
+**SKILL.md Format:**
+```markdown
+---
+name: criteria-check
+description: YAML-basierte Quality Gates für Deliverables
+trigger: qualität, review, check, fertig, done, abnahme
+---
+
+## Verfügbare Criteria
+
+### Strategy
+- goal-quality: Ist das Ziel klar, messbar, erreichbar?
+- story-size: Passt in eine Iteration? ≤5 Files? 2-3 Sätze beschreibbar?
+- hypothesis-testable: Kann die Hypothese verifiziert werden?
+
+### Code
+- code-quality: Clean Code, keine Duplikation, gute Names
+- test-coverage: Alle kritischen Pfade getestet
+- security: Keine Secrets, keine Injection, Race Conditions geprüft
+
+### Text
+- text-quality: Klar, präzise, keine Füllwörter
+- conciseness: Auf den Punkt, keine Wiederholungen
+
+## Anwendung
+Für JEDES Deliverable: Relevante Criteria identifizieren → Checks durchgehen → Bei FAIL: fixen vor Abgabe.
+```
+
+**Trigger-Words:** qualität, review, check, fertig, done, abnahme, quality gate
+
+### 6.6 Context Rot Prevention
+
+**SKILL.md Format:**
+```markdown
+---
+name: context-rot-prevention
+description: Verhindere Qualitätsverlust bei langen Sessions
+trigger: lange session, viel gemacht, context, komplex, sub-agent
+---
+
+## Quality Degradation Curve
+- 0-30% Context: Peak Quality — arbeite normal
+- 30-50% Context: Good — letzte große Tasks starten
+- 50-70% Context: WARNUNG — nur noch kleine Tasks oder Sub-Agents spawnen
+- 70%+ Context: STOP — alle restlichen Tasks an Sub-Agents delegieren
+
+## Regeln
+1. Max 2-3 Tasks selbst erledigen, dann Sub-Agent für weitere
+2. Hauptsession nur für Orchestration (≤40% Context)
+3. Sub-Agents bekommen frische Context-Fenster
+4. NIEMALS "noch schnell diesen einen Task" bei >50%
+
+## Signale dass Context Rot eintritt
+- Antworten werden kürzer
+- Details werden übersprungen
+- "Sollte funktionieren" statt Verification
+- Wiederholungen in Erklärungen
+```
+
+**Trigger-Words:** lange session, viel gemacht, context, sub-agent, delegieren
+
+### 6.7 Verification-Before-Completion
+
+**SKILL.md Format:**
+```markdown
+---
+name: verification
+description: Kein Success-Claim ohne bewiesene Verifikation
+trigger: fertig, done, abgeschlossen, funktioniert, erledigt
+---
+
+## Regel
+KEIN Success-Claim ohne: 1. Command ausführen 2. Output lesen 3. Ergebnis zitieren.
+
+## Verboten
+- "Should work" — das ist eine LÜGE
+- "Looks correct" — das ist eine VERMUTUNG
+- "I'm confident" — Confidence korreliert nicht mit Korrektheit
+- "Based on the changes" — basiere auf OUTPUT, nicht auf CHANGES
+
+## Erlaubt
+- "[RAN: npm test] [SAW: 47/47 pass] All tests pass."
+- "[RAN: curl localhost:3000/api/health] [SAW: 200 OK] Endpoint works."
+- "[RAN: python -m pytest] [SAW: FAILED test_auth.py] 2 failures found."
+
+## Verification Loop (Everything-CC Muster)
+1. Build: Kompiliert es?
+2. Types: Type-Check fehlerfrei?
+3. Lint: Lint fehlerfrei?
+4. Tests: Alle grün + Coverage ≥80%?
+5. Security: Keine Secrets, keine console.log in prod?
+6. Diff: Nur erwartete Dateien geändert?
+```
+
+**Trigger-Words:** fertig, done, abgeschlossen, funktioniert, erledigt, ready, ship it
 
 ---
 
 ## Teil 7: Was NICHT übernehmen (und warum)
 
-| Feature | Quelle | Warum NICHT |
-|---------|--------|-------------|
-| **21 Agent-Personas** | BMAD | OpenClaw hat 12 ECHTE Agents. Personas sind Theater. |
-| **Session-End Hook** | Everything-CC | Graphiti löst das Problem besser. |
-| **Strategic Compact Counter** | Everything-CC | Dummer Counter = Noise. OpenClaw hat Auto-Compact. |
-| **Full Beads Integration** | Beads | JSONL reicht. Migration ohne klaren Benefit. |
-| **BDUI TUI** | BDUI | Cool aber nicht essentiell. |
-| **60+ Brainstorming-Techniken** | BMAD | 21 Techniques reichen. Qualität > Quantität. |
-| **Installer-Script** | taming-stan | Claude Code hat Plugins. OpenClaw hat Skills. |
-| **group_id Logik** | taming-stan | Direktive: "Nur main." |
-| **Confidence Scoring** | Everything-CC | Widerspricht Zettelkasten. `last_validated` reicht. |
-| **Claude Agent SDK** | SDK | OpenClaw sessions_spawn ist überlegen. |
-| **Metakognitions-Regeln** | Diverse | 0% Compliance. 3-Strikes stattdessen. |
+### Explizite NEIN-Liste
+
+| Feature | Framework | Begründung |
+|---------|-----------|------------|
+| **Mandatory Brainstorming für ALLES** | Superpowers | "Every project goes through this process. A todo list, a config change." — Das ist Dogma. Ein 1-Line-Fix braucht kein Brainstorming. Scale-Adaptive (H1) löst das besser: Quick Flow für Triviales. |
+| **TDD ohne Escape Hatch** | Superpowers | "Thinking 'skip TDD just this once'? Stop." — Es gibt legitime Ausnahmen: Generated Code, Config-Dateien, Throwaway Prototypes. Die Iron Law ist gut als Guideline (~70% Compliance), nicht als Hook (~95% wäre zu rigid). |
+| **Party Mode (Multi-Agent-Theater)** | BMAD | Es ist IMMER das gleiche LLM. Kein echter Konflikt, keine echte Perspektive. OpenClaw hat 12 ECHTE Agents — das ist die bessere Lösung für Multi-Perspektiven. |
+| **Persona-System (YAML-Rollen)** | BMAD | 21 YAML-Dateien ≠ 21 Agents. OpenClaw hat echte Agents mit eigenen Sessions, Memory, Tools. Personas als Prompt-Swaps sind inferior. |
+| **NPM-Tooling für Distribution** | BMAD | `npx bmad-method@alpha install` kopiert nur Dateien. Git Submodule oder Plugin Marketplace sind sauberer. |
+| **Fresh Context per Bash-Kill** | Ralph | Das ist zu teuer für OpenClaw (Session-Overhead). Besser: Sub-Agents mit frischen Fenstern (GSD-Pattern) innerhalb bestehender Session-Infrastruktur. |
+| **Flat progress.txt** | Ralph | Tiered Learnings (recent/hot/archive) ist überlegen. progress.txt wächst unbegrenzt, keine Promotion, kein Heat-Scoring. |
+| **prd.json statt tasks.jsonl** | Ralph | `passes: true/false` ist zu simpel. JSONL mit Status/Dependencies/Acceptance Criteria ist mächtiger und bereits implementiert. |
+| **17.835-Zeilen-Workflows** | BMAD | Context Pollution. LLM muss Wall of Text parsen. OpenClaw Skills: kleine, fokussierte Dateien. |
+| **Continuous Learning (Auto-Extract)** | Everything-CC | WAS ist ein "Learning"? Algorithmus entscheidet, nicht Mensch → Noise. Graphiti + `!!save_immediately` ist besser: User entscheidet bewusst was wertvoll ist. |
+| **Strategic Compact (Tool-Counter)** | Everything-CC | Tool-Call-Zählung ≠ logische Phase. 50 Calls können mitten im Task sein. Phase-basierte Erkennung wäre besser, ist aber zu komplex. OpenClaw's Auto-Compaction + Pre-Flush ist die pragmatischere Lösung. |
+| **Context-Injection Modes** | Everything-CC | dev.md, review.md, research.md — autonomous-stan hat Phasen (DEFINE/PLAN/CREATE) die spezifischer sind. Redundant. |
+| **`--dangerously-skip-permissions`** | GSD | Security-Risiko. Agent könnte DB-Schema-Migration autonom durchführen. Deviation Rules (M4) sind die kontrollierte Alternative. |
+| **Stealth Mode** | Beads | Lokale Nutzung ohne Commits — für autonomous-stan irrelevant, da Git-Tracking gewünscht ist. |
+| **Multi-Repo Routing** | Beads | Kein OSS-Contributor Use Case erkennbar. Nur relevant wenn autonomous-stan als Framework für externe Projekte genutzt wird. |
+| **TUI Visualisierung** | BDUI | 15h+ Aufwand für Terminal-Kanban. Markdown tasks.md + BusinessMap reichen. Visualisierung ist nicht autonomous-stans Kern-Value. |
+| **Hierarchische Task-IDs** | Beads | `t-a3f8.1.1` Format ist schön, aber autonomous-stans flache Hash-IDs (`t-a1b2`) mit Dependencies reichen. Hierarchie durch Dependencies, nicht durch ID-Format. |
+| **7 spezialisierte Review-Agents** | PRPs | 10h Aufwand. Two-Stage Review (H2) deckt 90% des Werts ab. 7 Spezialisten sind Overkill für Solo-Dev / kleines Team. |
+| **Eval-Driven Development** | Everything-CC | pass@k Metriken sind elegant aber 8-10h Aufwand. Nur sinnvoll für kritische Features (Auth, Payments). Criteria-System deckt den Alltagsbedarf. |
+| **Workflow-Continuation (Pause/Resume)** | BMAD | Memory-System erlaubt bereits das Fortsetzen über Sessions. Expliziter Workflow-State in YAML wäre Over-Engineering. |
+| **Slash-Command-Menüs pro Agent** | BMAD | autonomous-stan nutzt `/stan` CLI. Pro-Agent-Menüs sind redundant. |
+
+### Die wichtigste Nicht-Entscheidung
+
+**Multi-Agent für autonomous-stan: NEIN (vorerst).**
+
+autonomous-stan ist ein Single-Agent-Framework. Multi-Agent-Orchestration (wie OpenClaw's 12 Agents) ist ein anderes Paradigma:
+- OpenClaw hat Multi-Agent als **Core Feature** (Sessions, Routing, Isolation)
+- autonomous-stan hat Multi-Agent als **Sub-Agent-Pattern** (Task Tool, Worktrees)
+- Die Kombination funktioniert: autonomous-stan's Kern (Criteria, Techniques, Templates) auf OpenClaw's Multi-Agent-Infrastruktur
+
+Statt Multi-Agent in autonomous-stan zu bauen, nutze OpenClaw's Infrastruktur und portiere autonomous-stans Kern als Skills zurück (Teil 6).
 
 ---
 
-## Anhang: Quellen
+## Anhang: Gesamtaufwand-Schätzung
 
-Detail-Analysen unter `docs/analysis/`:
-1. `superpowers.md` (557 Zeilen)
-2. `bmad-method.md` (847 Zeilen)
-3. `ralph.md` (642 Zeilen)
-4. `get-shit-done.md` (575 Zeilen)
-5. `prps-agentic-eng.md` (696 Zeilen)
-6. `beads-bdui.md` (629 Zeilen)
-7. `everything-claude-code.md` (822 Zeilen)
-8. `openclaw-architecture.md` (511 Zeilen)
-9. `taming-stan-and-sdk.md` (533 Zeilen)
-10. `current-state.md` (747 Zeilen)
+| Priorität | Features | Stunden | Timeline |
+|-----------|----------|---------|----------|
+| CRITICAL | C1-C5 | 20-27h | Woche 1 |
+| HIGH | H1-H7 | 24-30h | Woche 2-3 |
+| MEDIUM | M1-M8 | 23-30h | Woche 4-6 |
+| LOW | L1-L6 | 50h+ | Backlog |
+| **Gesamt (CRITICAL+HIGH)** | **12 Features** | **44-57h** | **~3 Wochen** |
 
-**Gesamtvolumen:** ~6.500 Zeilen Analyse, ~52KB Synthese
+**Empfehlung:** CRITICAL zuerst (besonders C5: Praxis-Validierung). Dann HIGH parallel. MEDIUM nach Praxis-Feedback priorisieren. LOW nur bei Bedarf.
 
 ---
 
-*Erstellt: 2026-02-16 | Autor: STAN | Karte: Board 5 #205*
+*Dieses Dokument ist eigenständig lesbar ohne die 10 Detail-Analysen. Für tiefere Einblicke: `docs/analysis/*.md`*
