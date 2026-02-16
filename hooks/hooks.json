@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-context.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_context.py",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-gate.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_gate.py",
             "timeout": 10
           }
         ]
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/stan-track.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/stan_track.py",
             "timeout": 10
           }
         ]
