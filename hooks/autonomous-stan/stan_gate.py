@@ -7,6 +7,7 @@ Enforcement-Layer:
 - BLOCKIERT Commit wenn pending_learnings existieren
 - BLOCKIERT nach 3-Strikes (gleiche Fehler)
 - BLOCKIERT bei Max Iterations (configurable, default 10)
+- BLOCKIERT CREATE wenn kein Research passiert ist (research_done)
 - Quality Gates: Tests grün vor Commit (in CREATE)
 - Automatische Dokument-Status-Übergänge
 """
@@ -295,6 +296,38 @@ def get_docs_path() -> Path:
     return Path(os.getcwd()) / "docs"
 
 
+def check_research_done() -> tuple[bool, str | None]:
+    """
+    Prüfe ob Research in der Session stattgefunden hat.
+    Liest research_done Flag aus research_guard's State.
+
+    Returns: (allowed, warning_message)
+    """
+    from pathlib import Path
+    state_file = Path(os.environ.get('STAN_STATE_DIR', '/tmp')) / '.stan' / 'research_state.json'
+    if not state_file.exists():
+        # No research state file = no research_guard installed = skip check
+        return True, None
+
+    try:
+        state = json.loads(state_file.read_text())
+    except (json.JSONDecodeError, Exception):
+        return True, None
+
+    if state.get("research_done", False):
+        return True, None
+
+    return False, (
+        "🔬 KEIN RESEARCH!\n\n"
+        "Du bist in CREATE aber hast in DEFINE/PLAN nicht recherchiert.\n"
+        "Bevor du Code/Dokumente schreibst:\n"
+        "1. Graphiti: search_nodes() — eigenes Wissen\n"
+        "2. Context7: query_docs() — aktuelle Library-Docs\n"
+        "3. web_search — Community Best Practices\n\n"
+        "Dein Training-Wissen ist veraltet. Such es im Netz."
+    )
+
+
 def auto_transition_on_create() -> str | None:
     """
     Automatischer Status-Übergang wenn CREATE Phase startet.
@@ -461,6 +494,14 @@ def main():
         _, warning = check_tests_passed()
         if warning:
             print(json.dumps(allow(warning.strip())))
+            return
+
+    # Research-Check in CREATE Phase
+    phase = get_current_phase() if 'get_current_phase' in dir() else "UNKNOWN"
+    if phase == "CREATE":
+        research_ok, research_warning = check_research_done()
+        if not research_ok:
+            print(json.dumps(deny(research_warning)))
             return
 
     # Automatische Status-Übergänge prüfen
