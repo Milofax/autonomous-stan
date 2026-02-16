@@ -2547,6 +2547,8 @@ If issues remain, list them specifically so the agent can address them.
 
 **Kernidee:** `/stan init` wird intelligent. Es scannt das Projekt, erkennt Stack, Patterns, Konventionen und legt das als Context ab. Criteria und Techniques nutzen diesen Context automatisch.
 
+**Vorarbeit erledigt:** MCP-Tool-Declaration in `/stan init` (Step 5) + `research_guard.py` liest `.stan/config.yaml` statt Runtime-Detection. Commit `6d3f80a`.
+
 | Task | Beschreibung | Status |
 |------|--------------|--------|
 | D-001 | **Project Discovery in `/stan init`**: Stack-Erkennung (package.json, Cargo.toml, pyproject.toml, etc.), Framework-Detection (Astro, Next, Django, etc.), Architektur-Patterns scannen (3-5 repräsentative Dateien analysieren), Ergebnis in `.stan/context/project-patterns.md` ablegen | · |
