@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
-PLUGIN_DIR = PROJECT_ROOT / "stan-plugin"
+PLUGIN_DIR = PROJECT_ROOT  # Plugin root IS repo root
 
 
 class TestPluginDirectoryStructure:
