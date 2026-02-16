@@ -33,6 +33,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/autonomous-stan/research_guard.py"
+          }
+        ]
       }
     ],
     "PostToolUse": [
