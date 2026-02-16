@@ -96,6 +96,40 @@ def format_learnings_summary(learnings: list, max_show: int = 5) -> str:
     return "\n".join(lines)
 
 
+def _collect_active_criteria() -> list[str]:
+    """Sammle aktive Criteria aus PRD und anderen Dokumenten im docs/ Verzeichnis."""
+    criteria = set()
+    cwd = os.getcwd()
+    docs_dir = Path(cwd) / "docs"
+
+    # Prüfe docs/*.md Frontmatter auf criteria: Felder
+    if docs_dir.exists():
+        for md_file in docs_dir.glob("*.md"):
+            try:
+                content = md_file.read_text()
+                if not content.startswith("---"):
+                    continue
+                end = content.find("---", 3)
+                if end < 0:
+                    continue
+                frontmatter = content[3:end]
+                # Einfaches Parsing: Suche "criteria:" gefolgt von "- name" Zeilen
+                in_criteria = False
+                for line in frontmatter.split("\n"):
+                    stripped = line.strip()
+                    if stripped.startswith("criteria:"):
+                        in_criteria = True
+                        continue
+                    if in_criteria and stripped.startswith("- "):
+                        criteria.add(stripped[2:].strip())
+                    elif in_criteria and stripped and not stripped.startswith("#"):
+                        in_criteria = False
+            except Exception:
+                continue
+
+    return sorted(criteria)
+
+
 def main():
     # Lese Hook-Input
     input_data = json.loads(sys.stdin.read())
@@ -146,6 +180,11 @@ def main():
         parts.append("No stan.md found (not initialized)")
 
     parts.append(f"Learnings: {stats['hot_count']} hot, {stats['recent_count']} recent")
+
+    # Aktive Criteria aus Dokumenten injizieren (für Evaluator-Hooks)
+    active_criteria = _collect_active_criteria()
+    if active_criteria:
+        parts.append(f"\nActive Criteria: {', '.join(active_criteria)}")
 
     # Wenn Learnings vorhanden, zeige relevante
     if learnings:
