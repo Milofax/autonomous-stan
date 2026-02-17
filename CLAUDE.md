@@ -1,6 +1,6 @@
 # autonomous-stan (Development)
 
-Autonomes Workflow-Framework mit modularen Denkwerkzeugen für Claude Code.
+Autonomous workflow framework with modular thinking tools for Claude Code.
 
 ## Language Rules
 
@@ -8,96 +8,113 @@ Autonomes Workflow-Framework mit modularen Denkwerkzeugen für Claude Code.
 - **All files:** English (documentation, config, code, comments, commit messages)
 - **Plugin name:** Always "autonomous-stan" (not "stan" alone)
 
-## Verpflichtend
+## Mandatory
 
-1. **Plan lesen:** [docs/plan.md](docs/plan.md)
-2. **Tasks nutzen und Status aktuell halten:** [docs/tasks.md](docs/tasks.md)
-3. **Parallelisierung wo möglich:** Tasks ohne Datei-Überschneidung parallel ausführen
+1. **Read the plan:** [docs/plan.md](docs/plan.md)
+2. **Use tasks and keep status current:** [docs/tasks.md](docs/tasks.md)
+3. **Parallelize where possible:** Tasks without file overlap can run in parallel
 
-## KRITISCH: Keine STAN Hooks in diesem Projekt!
+## CRITICAL: No STAN Hooks in This Project!
 
-**NIEMALS** STAN Hooks in `autonomous-stan` aktivieren oder installieren!
+**NEVER** activate or install STAN hooks inside `autonomous-stan`!
 
-- Dieses Projekt **entwickelt** das autonomous-stan Framework
-- Die Hooks gehören in das **autonomous-stan Plugin** (separates Repo für Installation)
-- Das Plugin wird dann in **andere Projekte** installiert
-- Hier: Entwicklung, Testing, kein Selbst-Enforcement
+- This project **develops** the autonomous-stan framework
+- The hooks belong in the **autonomous-stan plugin** (installed into other projects)
+- Here: development and testing only, no self-enforcement
 
-**Wenn du STAN Hooks hier siehst → DEAKTIVIEREN, nicht nutzen.**
+**If you see STAN hooks active here → DEACTIVATE, don't use.**
 
-Die Features werden hier über `/stan` Skills getestet, NICHT über Hooks.
+Features are tested here via `/stan` slash commands, NOT via hooks.
 
-## Arbeitsweise
-
-- **Techniques nutzen:** Bei Problemen → `/stan think` oder Purpose wählen
-- **Criteria-Check:** "Würde das meine eigenen Criteria bestehen?"
-- **Parallelisierung:** Unabhängige Tasks parallel, Subagents nutzen
-
-## WICHTIG: Single Source of Truth
-
-**IGNORIERE** alle Pläne in `~/.claude/plans/` oder anderen Claude-internen Verzeichnissen.
-
-Die einzige gültige Quelle für Planung und Tasks ist:
-- `docs/plan.md` - Der Plan
-- `docs/tasks.md` - Die Task-Liste
-
-Diese Projekt-Dateien sind IMMER aktueller als Claude-interne Pläne.
-
-## Claude Code Version-Tracking
-
-**Zuletzt geprüft:** v2.1.19 (2026-01-24)
-
-### Automatische Prüfung
-
-Bei Session-Start in diesem Projekt:
-1. Prüfe aktuelle Claude Code Version (`claude --version`)
-2. Wenn neuer als `Zuletzt geprüft` → Changelog auf GitHub lesen
-3. Analysiere Impact auf STAN Framework
-4. Informiere User über relevante Änderungen
-5. Aktualisiere `Zuletzt geprüft` auf neue Version + Datum
-
-### Bekannte Features (Stand v2.1.19)
-
-- **Claude Tasks (v2.1.16+):** Task-Management mit Dependencies, Status-Workflow, Multi-Agent Support
-  - STAN nutzt hybrides Modell: Claude Tasks = Runtime-Layer, docs/tasks.md = Planning-Layer
-- **CLAUDE_CODE_ENABLE_TASKS:** Env-Var zum Deaktivieren (default: enabled)
-
-### Changelog-Quelle
-
-GitHub: `gh api repos/anthropics/claude-code/contents/CHANGELOG.md`
-
-## Hook-Architektur (Validiert 2026-01-25)
-
-### Erkenntnisse
-
-| Hook-Typ | Datei-Zugriff | Subagent spawnen |
-|----------|---------------|------------------|
-| `type: prompt` | ❌ Nein ($TRANSCRIPT_PATH ist nur String) | ❌ Nein |
-| `type: command` | ✅ Ja (via stdin JSON) | ❌ Nein (kann nur systemMessage) |
-
-### Lösung: Command-Hook + Subagent via Task Tool
+## Repository Structure
 
 ```
-Hook (PostToolUse) → Liest Criteria → systemMessage
-                                           ↓
-Hauptagent → Task(model="haiku", prompt="Evaluiere...") → Subagent
-                                                              ↓
-                                                     PASS / FAIL / WARN
+autonomous-stan/
+├── hooks/
+│   ├── hooks.json                # Hook config (uses ${CLAUDE_PLUGIN_ROOT})
+│   ├── autonomous-stan/          # Hook scripts (installed as plugin)
+│   │   ├── stan_context.py       # UserPromptSubmit: phase/learnings/criteria injection
+│   │   ├── stan_gate.py          # PreToolUse(Bash): phase enforcement
+│   │   ├── git_guard.py          # PreToolUse(Bash): conventional commits + branch protection
+│   │   ├── credential_guard.py   # PreToolUse(Bash): 905 secret patterns, 3-strikes
+│   │   ├── research_guard.py     # PreToolUse(*): blocks decisions without prior research
+│   │   ├── stan_track.py         # PostToolUse(Bash): test tracking, red→green detection
+│   │   └── loop_breaker.py       # PostToolUse(Bash+Edit): edit→test loop detection
+│   └── lib/                      # Shared hook utilities
+├── stan/                         # Python package (importable library)
+│   ├── hooks/                    # Hook implementations (mirrored)
+│   └── lib/                      # Core library: config, criteria, session_state, etc.
+├── commands/stan/                # Slash commands (/stan init, /stan plan, etc.)
+│   ├── init.md, define.md, plan.md, create.md
+│   ├── think.md, complete.md, ready.md
+│   ├── healthcheck.md, statusupdate.md
+│   └── build-criteria.md, build-template.md
+├── criteria/                     # 23 YAML criteria files (quality checklists)
+├── techniques/                   # 22 YAML thinking techniques
+├── docs/                         # Plan, tasks, analysis docs
+├── tests/                        # 583+ tests (pytest)
+└── .claude-plugin/plugin.json    # Plugin manifest
 ```
 
-**Vorteile:**
-- Kein API-Token nötig (nutzt Subscription)
-- Subagent hat separaten Kontext (nicht "committed" zum Edit)
-- Unabhängige Evaluation erkennt Self-Serving Bias
+## 8 Active Hooks
 
-### Dateistruktur (analog taming-stan)
+| # | Hook | Event | What it does |
+|---|------|-------|-------------|
+| 1 | **stan_context** | UserPromptSubmit | Injects current phase, learnings, active criteria |
+| 2 | **stan_gate** | PreToolUse(Bash) | Phase enforcement: no build without plan |
+| 3 | **git_guard** | PreToolUse(Bash) | Conventional Commits, branch protection |
+| 4 | **credential_guard** | PreToolUse(Bash) | 905 secret patterns, 3-strikes escalation |
+| 5 | **research_guard** | PreToolUse(*) | Blocks architecture decisions without research |
+| 6 | **stan_track** | PostToolUse(Bash) | Test tracking, red→green detection |
+| 7 | **loop_breaker** | PostToolUse(Bash+Edit) | Edit→test loop detection → escalation |
+| 8 | **Evaluator** | PostToolUse(Edit) | Prompt-hook: independent quality check |
+| 9 | **Final Gate** | Stop | Prompt-hook: completion verification |
 
+## Hook Output Formats (CRITICAL)
+
+Different hook events require different output formats. Mixing them causes **silent failure** — Claude Code ignores wrong formats without error.
+
+```python
+# PreToolUse → permissionDecision
+{"hookSpecificOutput": {"permissionDecision": "allow"}}  # or "deny" or "ask"
+
+# PostToolUse → continue
+{"continue": True, "systemMessage": "..."}
+
+# UserPromptSubmit → continue
+{"continue": True, "systemMessage": "..."}
 ```
-scripts/
-├── prompts/*.md          # Evaluator-Prompts als Markdown
-├── lib/                  # Shared Code
-└── *.py                  # Hook-Scripts
 
-hooks/
-└── hooks.json            # Config mit ${CLAUDE_PLUGIN_ROOT}
+**Never use `continue` in PreToolUse or `permissionDecision` in PostToolUse.**
+
+## Working Principles
+
+- **Research first, build second** — research_guard enforces this
+- **Techniques for problems** — use `/stan think` or pick a purpose
+- **Criteria self-check** — "Would this pass my own criteria?"
+- **Parallelize** — independent tasks in parallel, use subagents
+
+## Single Source of Truth
+
+**IGNORE** all plans in `~/.claude/plans/` or other Claude-internal directories.
+
+The only valid sources for planning and tasks:
+- `docs/plan.md` — The plan
+- `docs/tasks.md` — The task list
+
+These project files are ALWAYS more current than Claude-internal plans.
+
+## Installation
+
+```bash
+claude plugin install github:Milofax/autonomous-stan
 ```
+
+## Testing
+
+```bash
+cd /path/to/autonomous-stan
+python3 -m pytest tests/ -v
+```
+
+All tests must pass. Currently 583+ tests, zero dependencies beyond Python stdlib.
