@@ -1,0 +1,178 @@
+id: devils-advocate
+name: "Devil's Advocate Review"
+description: |
+  Structured adversarial review using SPECIALIZED ROLE PERSPECTIVES.
+  Each phase gets TWO dedicated reviewers with distinct expertise —
+  not combined, not diluted, each one focused on what they do best.
+
+  Inspired by The Fool (Jeff Allan), BMAD Method role specialization,
+  and Adversarial Collaboration patterns.
+
+  MANDATORY: Every phase transition requires TWO passes from TWO
+  DIFFERENT perspectives. Not the same reviewer twice — two experts
+  who see different things.
+
+source: |
+  Community synthesis:
+  - "The Fool" Skill (Jeff Allan, claude-skills) — 5 reasoning modes, steel manning, evidence audit
+  - BMAD Method — role-specific agent perspectives (Analyst, PM, Architect, Dev, QA, Security)
+  - Adversarial Collaboration Simulator (Reddit r/PromptEngineering) — iterative refinement
+  - Overstory Framework — Named Failure Modes pattern
+
+purposes:
+  - code-review
+  - self-reflection
+  - perspective-shift
+
+roles:
+  # ── DEFINE Phase ──────────────────────────────────
+  - id: analyst
+    name: "Analyst"
+    phase: define
+    pass: 1
+    reference: "references/da-role-analyst.md"
+    focus: |
+      Evidence quality. Claim extraction. Falsification criteria.
+      Cognitive bias detection. Research integrity. "Is this SUPPORTED
+      by evidence, or are we guessing?"
+
+  - id: product-manager
+    name: "Product Manager"
+    phase: define
+    pass: 2
+    reference: "references/da-role-pm.md"
+    focus: |
+      Scope realism. Story atomicity. MoSCoW correctness. User need
+      validation. Success measurability. "Is this BUILDABLE as specified,
+      or is the scope a fantasy?"
+
+  # ── PLAN Phase ────────────────────────────────────
+  - id: architect
+    name: "Architect"
+    phase: plan
+    pass: 1
+    reference: "references/da-role-architect.md"
+    focus: |
+      Failure narratives. Scalability. Dependencies. Rollback plans.
+      Consequence chains. Coupling. "HOW does this plan fail, and
+      what would GUARANTEE failure?"
+
+  - id: security
+    name: "Security Reviewer"
+    phase: plan
+    pass: 2
+    reference: "references/da-role-security.md"
+    focus: |
+      Auth boundaries. Input validation. Secrets management. Dependency
+      CVEs. Error exposure. Attack vectors. "What can an ADVERSARY
+      exploit in this design?"
+
+  # ── CREATE Phase ──────────────────────────────────
+  - id: dev
+    name: "Senior Developer"
+    phase: create
+    pass: 1
+    reference: "references/da-role-dev.md"
+    focus: |
+      Spec conformity. Shortcut detection. Research integrity.
+      Code completeness. Architecture drift. "Did we BUILD what
+      we SAID we'd build, or did we cut corners?"
+
+  - id: qa
+    name: "QA Engineer"
+    phase: create
+    pass: 2
+    reference: "references/da-role-qa.md"
+    focus: |
+      Acceptance criteria evidence. Named failure modes. Edge cases.
+      Test coverage. Regression risk. "Is each criterion GENUINELY
+      met with EVIDENCE, or just checked off?"
+
+steps:
+  - "1. STEELMAN: Restate the work product in its strongest form."
+  - "2. IDENTIFY PHASE: Determine current phase (DEFINE/PLAN/CREATE)."
+  - "3. LOAD ROLE: Read the Pass 1 role's reference file."
+  - "4. CHALLENGE (Pass 1): Apply the role's method. 3-5 strongest findings."
+  - "5. ADDRESS: Fix findings from Pass 1."
+  - "6. LOAD ROLE 2: Read the Pass 2 role's reference file."
+  - "7. CHALLENGE (Pass 2): Different perspective, different findings. Also verify Pass 1 fixes."
+  - "8. VERDICT: Both roles must PASS. Any FAIL blocks the transition."
+
+output_format: |
+  ## DA Review: [Work Product] — [Role Name] (Pass [1|2])
+
+  **Steelmanned Position:** [strongest form of what was produced]
+
+  ### Challenges
+
+  | # | Severity | Finding | Spec Reference |
+  |---|----------|---------|----------------|
+  | 1 | HIGH/MED/LOW | [specific issue] | [which requirement/criteria] |
+  | 2 | ... | ... | ... |
+  | 3 | ... | ... | ... |
+
+  ### Named Failure Modes Detected
+  - [FAILURE_MODE_NAME]: [description] (or "None detected")
+
+  ### Conformity Score: [0-100]
+  - 90-100: Fully conformant, minor polish only
+  - 70-89: Conformant with gaps — fixable without re-scoping
+  - 50-69: Significant deviations — needs rework
+  - 0-49: Does not match spec — back to previous phase
+
+  ### Verdict: PASS | FAIL
+  [One sentence justification]
+
+constraints:
+  must_do:
+    - "Steelman the thesis BEFORE challenging it"
+    - "Ground challenges in SPECIFIC reasoning, not vague 'what ifs'"
+    - "Limit to 3-5 STRONGEST points (depth over breadth)"
+    - "Reference the spec/PRD/plan explicitly when finding deviations"
+    - "Maintain intellectual honesty — concede points that hold up"
+    - "Drive toward actionable fixes, not just a pile of problems"
+    - "Check for Named Failure Modes (SCOPE_CREEP, RESEARCH_BYPASS, QUALITY_GATE_SKIP, SILENT_FAILURE)"
+    - "Each role stays in character — an Analyst does NOT do QA work"
+
+  must_not:
+    - "Strawman the work product"
+    - "Generate challenges for the sake of disagreement"
+    - "Be nihilistic or purely destructive"
+    - "Stack minor objections to create false impression of weakness"
+    - "Skip the verdict (never leave without a clear PASS/FAIL)"
+    - "Combine roles — each perspective gets its own dedicated pass"
+    - "Override domain expertise with generic skepticism"
+
+two_pass_rule: |
+  MANDATORY: Every phase transition requires TWO Devil's Advocate passes
+  from TWO DIFFERENT ROLE PERSPECTIVES.
+
+  DEFINE:
+    Pass 1: Analyst (evidence quality, bias, research integrity)
+    Pass 2: Product Manager (scope, stories, buildability)
+
+  PLAN:
+    Pass 1: Architect (failure modes, scalability, dependencies)
+    Pass 2: Security Reviewer (auth, injection, secrets, CVEs)
+
+  CREATE:
+    Pass 1: Senior Developer (conformity, shortcuts, architecture drift)
+    Pass 2: QA Engineer (acceptance criteria evidence, edge cases, regression)
+
+  Both passes must be logged in document frontmatter:
+    techniques_applied:
+      - devils-advocate           # Pass 1 (first role) completed
+      - devils-advocate-verify    # Pass 2 (second role) completed
+
+  Gate enforcement: stan_gate.py blocks phase transition unless
+  BOTH entries are present in techniques_applied.
+
+when_to_use:
+  - "AUTOMATIC: Runs via Stop hook before any completion — no user action needed"
+  - "AUTOMATIC: Gate blocks commits until both passes are in frontmatter"
+  - "The user should NEVER need to know about this — it just happens"
+
+when_not_to_use:
+  - "Trivial fixes (typos, formatting) — overhead not justified"
+  - "Mid-task implementation details — wait for task completion"
+  - "When already in a 3-strikes recovery — use root-cause-analysis instead"

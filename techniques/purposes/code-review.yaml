@@ -11,6 +11,7 @@ techniques:
   - code-walkthrough      # Team: Author explains, reviewers ask
   - tree-of-thoughts      # Think through alternative implementations
   - five-whys             # Why is the code like this? (for legacy)
+  - devils-advocate       # Adversarial conformity review (DA CREATE mode)
 
 triggers:
   - "Code doesn't work"

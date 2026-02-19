@@ -13,6 +13,7 @@ techniques:
   - rubber-duck-debugging # Verbalize own thoughts
   - socratic-questioning  # Question own assumptions
   - code-walkthrough      # Review own code
+  - devils-advocate       # Adversarial review of own work (all 3 DA modes)
 
 triggers:
   - "That went wrong"

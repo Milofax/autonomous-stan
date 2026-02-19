@@ -8,6 +8,7 @@ Enforcement-Layer:
 - BLOCKIERT nach 3-Strikes (gleiche Fehler)
 - BLOCKIERT bei Max Iterations (configurable, default 10)
 - BLOCKIERT CREATE wenn kein Research passiert ist (research_done)
+- BLOCKIERT Commit wenn Devil's Advocate 2-Pass nicht abgeschlossen
 - Quality Gates: Tests grün vor Commit (in CREATE)
 - Automatische Dokument-Status-Übergänge
 """
@@ -328,6 +329,119 @@ def check_research_done() -> tuple[bool, str | None]:
     )
 
 
+def check_devils_advocate_completed(phase: str) -> tuple[bool, str | None]:
+    """
+    Check if Devil's Advocate review (2 passes) has been completed
+    for the relevant document in the given phase.
+
+    Phase mapping:
+    - DEFINE → check PRD for DA
+    - PLAN → check Plan for DA
+    - CREATE → check Plan for DA (before complete)
+
+    Returns: (allowed, block_reason)
+    """
+    docs_dir = get_docs_path()
+
+    # Determine which document to check
+    if phase == "DEFINE":
+        doc_path = docs_dir / "prd.md"
+        doc_name = "PRD"
+        da_mode = "Evidence Audit"
+    elif phase in ("PLAN", "CREATE"):
+        doc_path = docs_dir / "plan.md"
+        doc_name = "Plan"
+        da_mode = "Pre-Mortem" if phase == "PLAN" else "Conformity Review"
+    else:
+        return True, None
+
+    if not doc_path.exists():
+        return True, None
+
+    try:
+        content = doc_path.read_text(encoding='utf-8')
+
+        # Parse frontmatter
+        frontmatter_match = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+        if not frontmatter_match:
+            return True, None  # No frontmatter = no enforcement
+
+        frontmatter = frontmatter_match.group(1)
+
+        # Look for techniques_applied list
+        techniques_match = re.search(
+            r'techniques_applied:\s*\n((?:\s+-\s+\S+\n?)*)',
+            frontmatter
+        )
+
+        if not techniques_match:
+            techniques_applied = []
+        else:
+            raw = techniques_match.group(1)
+            techniques_applied = [
+                line.strip().lstrip('- ').strip()
+                for line in raw.strip().split('\n')
+                if line.strip().startswith('-')
+            ]
+
+        has_pass1 = 'devils-advocate' in techniques_applied
+        has_pass2 = 'devils-advocate-verify' in techniques_applied
+
+        if not has_pass1:
+            return False, (
+                f"😈 DEVIL'S ADVOCATE REQUIRED!\n\n"
+                f"Phase transition blocked. The {doc_name} has not been "
+                f"through a Devil's Advocate review (Pass 1).\n\n"
+                f"Required mode: {da_mode}\n"
+                f"Required entries in {doc_name} frontmatter:\n"
+                f"  techniques_applied:\n"
+                f"    - devils-advocate         # Pass 1\n"
+                f"    - devils-advocate-verify   # Pass 2\n\n"
+                f"Use /stan think → perspective-shift → Devil's Advocate\n"
+                f"or apply the review manually using "
+                f"techniques/references/da-*.md"
+            )
+
+        if not has_pass2:
+            return False, (
+                f"😈 DEVIL'S ADVOCATE PASS 2 REQUIRED!\n\n"
+                f"Phase transition blocked. The {doc_name} passed DA "
+                f"review Pass 1, but Pass 2 (fix verification) is missing.\n\n"
+                f"Pass 2 checks:\n"
+                f"- Were the findings from Pass 1 genuinely addressed?\n"
+                f"- Any new issues introduced by the fixes?\n"
+                f"- Is the conformity score improving?\n\n"
+                f"After Pass 2, add to {doc_name} frontmatter:\n"
+                f"  techniques_applied:\n"
+                f"    - devils-advocate         # ✅ Pass 1 done\n"
+                f"    - devils-advocate-verify   # ← Add this"
+            )
+
+        return True, None
+
+    except (OSError, Exception):
+        return True, None  # On error, don't block
+
+
+def is_phase_transition_command(command: str) -> tuple[bool, str | None]:
+    """
+    Check if a bash command is triggering a phase transition.
+    This catches /stan plan, /stan create, /stan complete via CLI.
+
+    Returns: (is_transition, target_phase)
+    """
+    # Match patterns like: claude "/stan plan", stan plan, etc.
+    patterns = [
+        (r'/stan\s+plan', 'PLAN'),
+        (r'/stan\s+create', 'CREATE'),
+        (r'/stan\s+complete', 'COMPLETE'),
+    ]
+    for pattern, phase in patterns:
+        if re.search(pattern, command, re.IGNORECASE):
+            return True, phase
+    return False, None
+
+
 def auto_transition_on_create() -> str | None:
     """
     Automatischer Status-Übergang wenn CREATE Phase startet.
@@ -495,6 +609,14 @@ def main():
         if warning:
             print(json.dumps(allow(warning.strip())))
             return
+
+        # Check 3: Devil's Advocate (2-pass) for phase completion commits
+        phase = get_current_phase()
+        if phase:
+            da_ok, da_reason = check_devils_advocate_completed(phase)
+            if not da_ok:
+                print(json.dumps(deny(da_reason)))
+                return
 
     # Research-Check in CREATE Phase
     phase = get_current_phase() if 'get_current_phase' in dir() else "UNKNOWN"

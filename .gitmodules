@@ -22,3 +22,6 @@
 [submodule "vendor/get-shit-done"]
 	path = vendor/get-shit-done
 	url = https://github.com/glittercowboy/get-shit-done
+[submodule "vendor/overstory"]
+	path = vendor/overstory
+	url = https://github.com/jayminwest/overstory.git

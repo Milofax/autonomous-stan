@@ -12,6 +12,7 @@ techniques:
   - stakeholder-mapping # All stakeholders and their views
   - socratic-questioning # Uncover assumptions through questions
   - pre-mortem         # Look back from the future
+  - devils-advocate    # Structured adversarial challenge (all 3 DA modes)
 
 triggers:
   - "I'm sure, but... (warning sign!)"

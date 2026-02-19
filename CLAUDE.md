@@ -69,6 +69,7 @@ autonomous-stan/
 | 7 | **loop_breaker** | PostToolUse(Bash+Edit) | Edit→test loop detection → escalation |
 | 8 | **Evaluator** | PostToolUse(Edit) | Prompt-hook: independent quality check |
 | 9 | **Final Gate** | Stop | Prompt-hook: completion verification |
+| 10 | **Devil's Advocate** | Stop | Prompt-hook: adversarial conformity review (3 modes) |
 
 ## Hook Output Formats (CRITICAL)
 
@@ -90,6 +91,7 @@ Different hook events require different output formats. Mixing them causes **sil
 ## Working Principles
 
 - **Research first, build second** — research_guard enforces this
+- **Devil's Advocate runs automatically** — 2-pass adversarial review at every phase gate (6 specialized roles, spawned as sub-agents, no user action needed)
 - **Techniques for problems** — use `/stan think` or pick a purpose
 - **Criteria self-check** — "Would this pass my own criteria?"
 - **Parallelize** — independent tasks in parallel, use subagents
